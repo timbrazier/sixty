@@ -89,6 +89,8 @@ final class ProgressTests: XCTestCase {
         XCTAssertEqual(NotificationCopy.morning(dayNumber: 14, length: 60, activityCount: 5, leadActivity: "Run"),
                        .init(title: "Day 14 of 60",
                              body: "Back from your run? Five ticks and a photo, about two minutes."))
+        XCTAssertEqual(NotificationCopy.morning(dayNumber: 60, length: 60, activityCount: 5, leadActivity: "Run"),
+                       .init(title: "Day 60 of 60", body: "Last one. Log it, then see all 60 days."))
         XCTAssertEqual(NotificationCopy.eveOfDayOne(planName: "Autumn reset", firstNudge: "06:45"),
                        .init(title: "Autumn reset starts tomorrow", body: "First nudge at 06:45."))
         XCTAssertEqual(NotificationCopy.joined(["A", "B", "C"]), "A, B and C")

@@ -8,7 +8,12 @@ public enum NotificationCopy {
     }
 
     /// "Day 14 of 60" / "Back from your run? Five ticks and a photo, about two minutes."
+    /// On the last day: "Day 60 of 60" / "Last one. Log it, then see all 60 days."
     public static func morning(dayNumber: Int, length: Int, activityCount: Int, leadActivity: String?) -> Message {
+        if dayNumber == length {
+            return Message(title: "Day \(dayNumber) of \(length)",
+                           body: "Last one. Log it, then see all \(length) days.")
+        }
         let opener = leadActivity.map { "Back from your \($0.lowercased())? " } ?? ""
         let ticks = activityCount == 1 ? "One tick" : "\(spelled(activityCount).capitalizedFirst) ticks"
         return Message(title: "Day \(dayNumber) of \(length)",
