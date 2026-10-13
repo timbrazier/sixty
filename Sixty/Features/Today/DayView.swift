@@ -112,7 +112,10 @@ struct DayView: View {
                         if isPastDay {
                             PastDayBanner { onSelect(currentDay) }
                         }
-                        if progress.isComplete {
+                        if progress.isComplete && day == plan.calendar.endDay {
+                            FinalSummary(plan: plan)
+                                .transition(.opacity)
+                        } else if progress.isComplete {
                             DayCompleteBanner(dayNumber: dayNumber, detail: completeDetail)
                                 .transition(.move(edge: .top).combined(with: .opacity))
                         }
@@ -478,6 +481,12 @@ func dismissKeyboard() {
 #Preview("Day 12, past day") {
     PreviewHost { plan in
         DayView(plan: plan, day: PreviewData.today.adding(days: -2), isStripOpen: .constant(true)) { _ in }
+    }
+}
+
+#Preview("Day 60, plan complete") {
+    PreviewHost(today: PreviewData.startDay.adding(days: 59), loggedThrough: 60) { plan in
+        DayView(plan: plan, day: plan.calendar.endDay, isStripOpen: .constant(false)) { _ in }
     }
 }
 

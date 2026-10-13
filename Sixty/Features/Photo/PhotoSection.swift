@@ -140,6 +140,8 @@ struct PhotoSection: View {
 struct PhotoThumbnail: View {
     let filename: String
     var maxPixel: CGFloat = 1200
+    /// `.fill` crops to the frame; `.fit` shows the whole photo (the viewer).
+    var contentMode: ContentMode = .fill
 
     @State private var image: UIImage?
 
@@ -148,7 +150,7 @@ struct PhotoThumbnail: View {
             if let image {
                 Image(uiImage: image)
                     .resizable()
-                    .scaledToFill()
+                    .aspectRatio(contentMode: contentMode)
             } else {
                 Hatch()
             }

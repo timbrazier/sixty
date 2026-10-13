@@ -12,8 +12,9 @@ struct PreviewHost<Content: View>: View {
     @State private var saver: AutoSaver
     @State private var router = AppRouter()
 
-    init(today: DayKey = PreviewData.today, @ViewBuilder content: @escaping (Plan) -> Content) {
-        let container = PreviewData.container
+    init(today: DayKey = PreviewData.today, loggedThrough: Int = 13,
+         @ViewBuilder content: @escaping (Plan) -> Content) {
+        let container = PreviewData.container(loggedThrough: loggedThrough)
         self.container = container
         self.today = today
         self.content = content

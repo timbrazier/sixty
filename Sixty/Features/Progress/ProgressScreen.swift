@@ -114,7 +114,7 @@ struct DayGrid: View {
                 let number = plan.calendar.dayNumber(for: day)
                 let status = DayStatus.of(day: day, today: today, progress: entries[day]?.progress)
                 DayCell(number: number, status: status, isToday: day == today,
-                        isSelected: day == selected, showsNumber: !compact)
+                        isSelected: day == selected, showsNumber: !compact, aspect: compact ? 1.5 : 1)
                     .onTapGesture { onSelect?(day) }
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel("Day \(number), \(day.longName), \(status.spoken)")
@@ -134,6 +134,8 @@ struct DayCell: View {
     let isToday: Bool
     let isSelected: Bool
     var showsNumber = true
+    /// Width over height; the final-day summary uses wider cells.
+    var aspect: CGFloat = 1
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: Tokens.Radius.gridCell)
@@ -170,7 +172,7 @@ struct DayCell: View {
                     .dynamicTypeSize(...DynamicTypeSize.large)
             }
         }
-        .aspectRatio(1, contentMode: .fit)
+        .aspectRatio(aspect, contentMode: .fit)
         .padding(isSelected ? 2 : 0)
         .overlay {
             if isSelected {

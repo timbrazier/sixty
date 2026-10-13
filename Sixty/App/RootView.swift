@@ -50,7 +50,7 @@ struct MainTabView: View {
             ProgressScreen(plan: plan)
                 .tabItem { Label("Progress", systemImage: "square.grid.2x2") }
                 .tag(AppRouter.Tab.progress)
-            PlaceholderScreen(title: "Photos", plan: plan)
+            PhotosScreen(plan: plan)
                 .tabItem { Label("Photos", systemImage: "photo") }
                 .tag(AppRouter.Tab.photos)
             PlaceholderScreen(title: "Settings", plan: plan)
@@ -60,7 +60,7 @@ struct MainTabView: View {
     }
 }
 
-// MARK: Placeholder until steps 6 and 8 replace it
+// MARK: Placeholder until step 8 replaces it
 
 private struct PlaceholderScreen: View {
     let title: String
