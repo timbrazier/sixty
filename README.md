@@ -33,8 +33,9 @@ Sixty/
   App/                App entry, root view, the shared "today" value
   Features/Setup/     Three-step plan setup
   Features/Today/     Today tab: countdown, bib and ring, checklist, questions, note
+  Features/Photo/     Progress-photo camera (Day 1 ghost, volume shutter) and photo slot
   Models/             SwiftData models: Plan, Activity, Question, DayEntry
-  Services/           EntryStore (fetch/create entries); photos, notifications, export to come
+  Services/           EntryStore, PhotoStore (Documents/Photos JPEGs); notifications and export to come
   Design/             DesignTokens.swift (colours, spacing, radii, type, motion) and shared components
   Preview/            Sample "Autumn reset" plan for SwiftUI previews
   Resources/          Assets, Barlow Condensed (SIL Open Font License)
@@ -60,7 +61,7 @@ SixtyCore/            Foundation-only logic, unit-tested:
 1. ✅ Project setup, models, sample data, design tokens
 2. ✅ Plan setup flow
 3. ✅ Today screen with checklist, questions, journal, auto-save
-4. Photo capture and storage
+4. ✅ Photo capture and storage
 5. Day navigation and Progress grid with streak
 6. Photos timeline and Day 1 vs latest comparison
 7. Notifications and deep links

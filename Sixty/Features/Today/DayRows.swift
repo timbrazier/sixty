@@ -119,27 +119,6 @@ struct CheckShape: Shape {
     }
 }
 
-/// Empty photo slot. Capture arrives in step 4.
-struct PhotoSlot: View {
-    let isLocked: Bool
-
-    var body: some View {
-        VStack(spacing: Tokens.Space.xs) {
-            Image(systemName: "camera")
-                .font(.title3)
-            Text(isLocked ? "Photo" : "Add today's photo")
-                .font(Tokens.Font.headline)
-        }
-        .foregroundStyle(isLocked ? Tokens.Colour.ink3 : Tokens.Colour.accent)
-        .frame(maxWidth: .infinity, minHeight: 120)
-        .background {
-            RoundedRectangle(cornerRadius: Tokens.Radius.photo)
-                .strokeBorder(Tokens.Colour.line2, style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
-        }
-        .accessibilityElement(children: .combine)
-    }
-}
-
 /// "Photo ✓", "Questions 3/3", "Note ✓" on a completed day.
 struct FoldChip: View {
     let title: String

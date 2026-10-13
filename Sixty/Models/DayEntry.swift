@@ -17,6 +17,8 @@ final class DayEntry {
     var journal: String
     /// File name in Documents/Photos, if a photo was taken.
     var photoFilename: String?
+    /// When the photo was taken or chosen, shown on the slot ("06:52").
+    var photoTakenAt: Date?
 
     /// What the plan asked for on this day, captured when the entry was made.
     /// Completion is judged against these, so editing the plan later never
@@ -39,6 +41,7 @@ final class DayEntry {
         self.answers = [:]
         self.journal = ""
         self.photoFilename = nil
+        self.photoTakenAt = nil
         self.plannedActivityIDs = []
         self.plannedQuestionIDs = []
         self.requiredQuestionIDs = []

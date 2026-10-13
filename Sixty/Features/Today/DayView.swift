@@ -22,6 +22,8 @@ struct DayView: View {
     /// note fold into chips under the checklist until tapped.
     @State private var folded: Set<Fold> = []
     @State private var lastAnswers: [UUID: String] = [:]
+    @State private var ghostFilename: String?
+    @State private var photoFailed = false
 
     enum Fold: Hashable { case photo, questions, note }
 
@@ -100,6 +102,10 @@ struct DayView: View {
         .onAppear {
             if progress.isComplete { folded = [.photo, .questions, .note] }
             loadLastAnswers()
+            loadGhost()
+        }
+        .alert("Couldn't save the photo", isPresented: $photoFailed) {
+            Button("OK", role: .cancel) {}
         }
     }
 
@@ -126,7 +132,12 @@ struct DayView: View {
         if !folded.contains(.photo) {
             VStack(alignment: .leading, spacing: Tokens.Space.xs) {
                 SectionHeader("Photo")
-                PhotoSlot(isLocked: isLocked)
+                PhotoSection(filename: entry?.photoFilename,
+                             takenAt: entry?.photoTakenAt,
+                             ghostFilename: ghostFilename,
+                             isLocked: isLocked,
+                             onPhoto: setPhoto,
+                             onRemove: removePhoto)
             }
         }
         if !folded.contains(.questions) && !questions.isEmpty {
@@ -270,6 +281,57 @@ struct DayView: View {
         } set: { newValue in
             edit { $0.journal = newValue }
         }
+    }
+
+    /// Resizes and writes the photo off the main thread, then points the
+    /// entry at it and removes the one it replaced.
+    private func setPhoto(_ image: UIImage) {
+        let day = day
+        Task {
+            let saved = try? await Task.detached(priority: .userInitiated) {
+                try PhotoStore.save(image, day: day)
+            }.value
+            guard let saved else {
+                photoFailed = true
+                return
+            }
+            var replaced: String?
+            withAnimation {
+                edit { entry in
+                    replaced = entry.photoFilename
+                    entry.photoFilename = saved
+                    entry.photoTakenAt = Date()
+                }
+            }
+            // Save now so the entry never points at a deleted file.
+            saver.saveNow()
+            if let replaced { PhotoStore.delete(replaced) }
+        }
+    }
+
+    private func removePhoto() {
+        var removed: String?
+        withAnimation {
+            edit { entry in
+                removed = entry.photoFilename
+                entry.photoFilename = nil
+                entry.photoTakenAt = nil
+            }
+        }
+        saver.saveNow()
+        if let removed { PhotoStore.delete(removed) }
+    }
+
+    /// Day 1's photo for the camera ghost, or the earliest photo if Day 1
+    /// has none. None on Day 1 itself.
+    private func loadGhost() {
+        guard day > plan.calendar.startDay else { return }
+        let raw = day.rawValue
+        var descriptor = FetchDescriptor<DayEntry>(
+            predicate: #Predicate { $0.photoFilename != nil && $0.dayKey != raw },
+            sortBy: [SortDescriptor(\.date)])
+        descriptor.fetchLimit = 1
+        ghostFilename = (try? context.fetch(descriptor))?.first?.photoFilename
     }
 
     /// The most recent earlier answer to each question, so "Add" on Sleep or
