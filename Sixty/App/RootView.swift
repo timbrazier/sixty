@@ -7,6 +7,7 @@ struct RootView: View {
     @Query(sort: \Plan.createdAt, order: .reverse) private var plans: [Plan]
     @Environment(\.scenePhase) private var scenePhase
     @Environment(AutoSaver.self) private var saver
+    @Environment(\.modelContext) private var context
     @State private var today: DayKey
 
     init(today: DayKey = .today()) {
@@ -25,7 +26,9 @@ struct RootView: View {
         .tint(Tokens.Colour.accent)
         .onChange(of: scenePhase) { _, phase in
             switch phase {
-            case .active: today = .today()
+            case .active:
+                today = .today()
+                NotificationScheduler.reschedule(in: context)
             // Don't wait out the 500 ms: the app may be killed in the background.
             case .inactive, .background: saver.saveNow()
             @unknown default: break
@@ -33,6 +36,7 @@ struct RootView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
             today = .today()
+            NotificationScheduler.reschedule(in: context)
         }
     }
 }

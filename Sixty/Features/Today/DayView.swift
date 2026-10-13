@@ -358,7 +358,10 @@ struct DayView: View {
         if entry.firstEditedAt == nil { entry.firstEditedAt = now }
         entry.updatedAt = now
         if entry.isComplete {
-            if !wasComplete { entry.completedAt = now }
+            if !wasComplete {
+                entry.completedAt = now
+                if day == today { NotificationScheduler.dayCompleted(day) }
+            }
         } else {
             entry.completedAt = nil
         }

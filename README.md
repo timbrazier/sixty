@@ -37,13 +37,13 @@ Sixty/
   Features/Progress/  Stats, the plan grid and day detail
   Features/Photos/    Photos tab: comparison (side by side or slider), timeline, viewer
   Models/             SwiftData models: Plan, Activity, Question, DayEntry
-  Services/           EntryStore, PhotoStore (Documents/Photos JPEGs); notifications and export to come
+  Services/           EntryStore, PhotoStore (Documents/Photos JPEGs), NotificationScheduler; export to come
   Design/             DesignTokens.swift (colours, spacing, radii, type, motion) and shared components
   Preview/            Sample "Autumn reset" plan for SwiftUI previews
   Resources/          Assets, Barlow Condensed (SIL Open Font License)
 SixtyCore/            Foundation-only logic, unit-tested:
                       DayKey, PlanCalendar, DayProgress/DayStatus, Streak,
-                      PlanStats, CSVWriter, NotificationCopy
+                      PlanStats, ReminderPlanner, CSVWriter, NotificationCopy
 ```
 
 ## How days work
@@ -58,6 +58,15 @@ SixtyCore/            Foundation-only logic, unit-tested:
   which activities and questions were in the plan that day, so editing the
   plan later doesn't change past days.
 
+## Reminders
+
+The app keeps the next 14 days of reminders scheduled (iOS allows 64
+pending), and rebuilds them on every open, after every save and at
+midnight. Tonight's check-in is removed the moment today is complete,
+and its wording follows what's still open ("Mobility and Read are still
+open"). Tapping a reminder opens that day. `ReminderPlannerTests` covers
+the window, completed days and clock-change days.
+
 ## Build progress
 
 1. ✅ Project setup, models, sample data, design tokens
@@ -66,6 +75,6 @@ SixtyCore/            Foundation-only logic, unit-tested:
 4. ✅ Photo capture and storage
 5. ✅ Day navigation and Progress grid with streak
 6. ✅ Photos timeline, Day 1 vs latest comparison and the final-day summary
-7. Notifications and deep links
+7. ✅ Notifications and deep links
 8. Settings, CSV and photo export
 9. Light/dark and Dynamic Type polish

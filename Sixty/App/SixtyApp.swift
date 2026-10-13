@@ -3,9 +3,9 @@ import SwiftData
 
 @main
 struct SixtyApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     let container: ModelContainer
     @State private var saver: AutoSaver
-    @State private var router = AppRouter()
 
     init() {
         do {
@@ -13,14 +13,18 @@ struct SixtyApp: App {
         } catch {
             fatalError("Couldn't open the Sixty store: \(error)")
         }
-        _saver = State(initialValue: AutoSaver(context: container.mainContext))
+        let context = container.mainContext
+        let saver = AutoSaver(context: context)
+        // Every save may change tonight's check-in, so redo the reminders.
+        saver.onSaved = { NotificationScheduler.reschedule(in: context) }
+        _saver = State(initialValue: saver)
     }
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environment(saver)
-                .environment(router)
+                .environment(appDelegate.router)
         }
         .modelContainer(container)
     }

@@ -103,7 +103,10 @@ struct PlanSetupView: View {
         do {
             let plan = try draft.save(in: context)
             if plan.morningReminderMinutes != nil || plan.eveningReminderMinutes != nil {
-                Task { await NotificationScheduler.requestPermission() }
+                Task {
+                    await NotificationScheduler.requestPermission()
+                    NotificationScheduler.reschedule(in: context)
+                }
             }
             onFinish?(plan)
         } catch {
