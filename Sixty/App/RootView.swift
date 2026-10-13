@@ -6,6 +6,7 @@ import SixtyCore
 struct RootView: View {
     @Query(sort: \Plan.createdAt, order: .reverse) private var plans: [Plan]
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(AutoSaver.self) private var saver
     @State private var today: DayKey
 
     init(today: DayKey = .today()) {
@@ -23,7 +24,12 @@ struct RootView: View {
         .environment(\.today, today)
         .tint(Tokens.Colour.accent)
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { today = .today() }
+            switch phase {
+            case .active: today = .today()
+            // Don't wait out the 500 ms: the app may be killed in the background.
+            case .inactive, .background: saver.saveNow()
+            @unknown default: break
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
             today = .today()
@@ -36,7 +42,7 @@ struct MainTabView: View {
 
     var body: some View {
         TabView {
-            PlaceholderScreen(title: "Today", plan: plan)
+            TodayScreen(plan: plan)
                 .tabItem { Label("Today", systemImage: "circle.circle") }
             PlaceholderScreen(title: "Progress", plan: plan)
                 .tabItem { Label("Progress", systemImage: "square.grid.3x3") }
@@ -48,7 +54,7 @@ struct MainTabView: View {
     }
 }
 
-// MARK: Placeholder until steps 3–8 replace it
+// MARK: Placeholder until steps 5–8 replace it
 
 private struct PlaceholderScreen: View {
     let title: String
@@ -81,11 +87,12 @@ private struct PlaceholderScreen: View {
 }
 
 #Preview("Day 14") {
-    RootView(today: PreviewData.today)
-        .modelContainer(PreviewData.container)
+    PreviewHost { _ in RootView(today: PreviewData.today) }
 }
 
 #Preview("No plan") {
-    RootView()
-        .modelContainer(PreviewData.emptyContainer)
+    let container = PreviewData.emptyContainer
+    return RootView()
+        .modelContainer(container)
+        .environment(AutoSaver(context: container.mainContext))
 }

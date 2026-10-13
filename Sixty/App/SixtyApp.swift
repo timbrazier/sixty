@@ -4,6 +4,7 @@ import SwiftData
 @main
 struct SixtyApp: App {
     let container: ModelContainer
+    @State private var saver: AutoSaver
 
     init() {
         do {
@@ -11,11 +12,13 @@ struct SixtyApp: App {
         } catch {
             fatalError("Couldn't open the Sixty store: \(error)")
         }
+        _saver = State(initialValue: AutoSaver(context: container.mainContext))
     }
 
     var body: some Scene {
         WindowGroup {
             RootView()
+                .environment(saver)
         }
         .modelContainer(container)
     }

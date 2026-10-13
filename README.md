@@ -6,7 +6,7 @@ SwiftData, iOS 17+, no server and no third-party packages.
 
 ## Getting started
 
-You need a Mac with Xcode 15 or later.
+You need a Mac with Xcode 16 or later.
 
 ```sh
 brew install xcodegen   # once
@@ -32,6 +32,7 @@ project.yml           XcodeGen spec
 Sixty/
   App/                App entry, root view, the shared "today" value
   Features/Setup/     Three-step plan setup
+  Features/Today/     Today tab: countdown, bib and ring, checklist, questions, note
   Models/             SwiftData models: Plan, Activity, Question, DayEntry
   Services/           EntryStore (fetch/create entries); photos, notifications, export to come
   Design/             DesignTokens.swift (colours, spacing, radii, type, motion) and shared components
@@ -58,7 +59,7 @@ SixtyCore/            Foundation-only logic, unit-tested:
 
 1. ✅ Project setup, models, sample data, design tokens
 2. ✅ Plan setup flow
-3. Today screen with checklist, questions, journal, auto-save
+3. ✅ Today screen with checklist, questions, journal, auto-save
 4. Photo capture and storage
 5. Day navigation and Progress grid with streak
 6. Photos timeline and Day 1 vs latest comparison

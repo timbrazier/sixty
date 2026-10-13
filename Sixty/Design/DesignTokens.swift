@@ -91,6 +91,7 @@ enum Tokens {
         static let subheadline = SwiftUI.Font.subheadline           // 15/20
         /// Section labels: footnote semibold 13/18, set in caps with tracking.
         static let sectionLabel = SwiftUI.Font.footnote.weight(.semibold)
+        static let footnoteRegular = SwiftUI.Font.footnote          // 13/18
         static let caption2 = SwiftUI.Font.caption2                 // 11/13
     }
 
