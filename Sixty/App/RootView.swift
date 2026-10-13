@@ -57,41 +57,9 @@ struct MainTabView: View {
             PhotosScreen(plan: plan)
                 .tabItem { Label("Photos", systemImage: "photo") }
                 .tag(AppRouter.Tab.photos)
-            PlaceholderScreen(title: "Settings", plan: plan)
+            SettingsScreen(plan: plan)
                 .tabItem { Label("Settings", systemImage: "gearshape") }
                 .tag(AppRouter.Tab.settings)
-        }
-    }
-}
-
-// MARK: Placeholder until step 8 replaces it
-
-private struct PlaceholderScreen: View {
-    let title: String
-    let plan: Plan
-    @Environment(\.today) private var today
-
-    var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: Tokens.Space.xs) {
-                Text("Day").sectionLabelStyle()
-                HStack(alignment: .lastTextBaseline, spacing: Tokens.Space.xxs) {
-                    Text("\(plan.calendar.dayNumber(for: today))")
-                        .font(Tokens.Font.bib())
-                        .foregroundStyle(Tokens.Colour.ink)
-                    Text("of \(plan.lengthDays)")
-                        .font(Tokens.Font.subheadline)
-                        .foregroundStyle(Tokens.Colour.ink3)
-                }
-                Text(plan.name).foregroundStyle(Tokens.Colour.ink2)
-            }
-            .padding(Tokens.Space.l)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Tokens.Colour.surface, in: RoundedRectangle(cornerRadius: Tokens.Radius.bib))
-            .padding(Tokens.Space.m)
-            .frame(maxHeight: .infinity, alignment: .top)
-            .background(Tokens.Colour.bg)
-            .navigationTitle(title)
         }
     }
 }

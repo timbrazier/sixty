@@ -36,14 +36,15 @@ Sixty/
   Features/Photo/     Progress-photo camera (Day 1 ghost, volume shutter) and photo slot
   Features/Progress/  Stats, the plan grid and day detail
   Features/Photos/    Photos tab: comparison (side by side or slider), timeline, viewer
+  Features/Settings/  Plan editing (archive, never delete), reminders, export, debug list
   Models/             SwiftData models: Plan, Activity, Question, DayEntry
-  Services/           EntryStore, PhotoStore (Documents/Photos JPEGs), NotificationScheduler; export to come
+  Services/           EntryStore, PhotoStore (Documents/Photos JPEGs), NotificationScheduler, Exporter
   Design/             DesignTokens.swift (colours, spacing, radii, type, motion) and shared components
   Preview/            Sample "Autumn reset" plan for SwiftUI previews
   Resources/          Assets, Barlow Condensed (SIL Open Font License)
 SixtyCore/            Foundation-only logic, unit-tested:
                       DayKey, PlanCalendar, DayProgress/DayStatus, Streak,
-                      PlanStats, ReminderPlanner, CSVWriter, NotificationCopy
+                      PlanStats, ReminderPlanner, LogExport, CSVWriter, NotificationCopy
 ```
 
 ## How days work
@@ -76,5 +77,5 @@ the window, completed days and clock-change days.
 5. ✅ Day navigation and Progress grid with streak
 6. ✅ Photos timeline, Day 1 vs latest comparison and the final-day summary
 7. ✅ Notifications and deep links
-8. Settings, CSV and photo export
+8. ✅ Settings, CSV and photo export
 9. Light/dark and Dynamic Type polish

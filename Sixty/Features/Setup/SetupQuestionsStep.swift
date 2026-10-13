@@ -83,14 +83,18 @@ struct SetupQuestionsStep: View {
 struct QuestionEditor: View {
     @State private var question: PlanDraft.QuestionDraft
     private let isNew: Bool
+    /// Existing questions keep their answer type, so past answers still make sense.
+    private let allowsKindChange: Bool
     let onSave: (PlanDraft.QuestionDraft) -> Void
 
     @Environment(\.dismiss) private var dismiss
     @FocusState private var promptFocused: Bool
 
-    init(question: PlanDraft.QuestionDraft, onSave: @escaping (PlanDraft.QuestionDraft) -> Void) {
+    init(question: PlanDraft.QuestionDraft, allowsKindChange: Bool = true,
+         onSave: @escaping (PlanDraft.QuestionDraft) -> Void) {
         _question = State(initialValue: question)
         isNew = question.prompt.isEmpty
+        self.allowsKindChange = allowsKindChange
         self.onSave = onSave
     }
     private var canSave: Bool { !question.prompt.trimmingCharacters(in: .whitespaces).isEmpty }
@@ -106,6 +110,7 @@ struct QuestionEditor: View {
                         Text("Scale 1–5").tag(Question.Kind.scale)
                         Text("Text").tag(Question.Kind.text)
                     }
+                    .disabled(!allowsKindChange)
                 }
                 .surfaceRow()
 
