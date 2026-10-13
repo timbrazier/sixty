@@ -78,4 +78,20 @@ the window, completed days and clock-change days.
 6. ✅ Photos timeline, Day 1 vs latest comparison and the final-day summary
 7. ✅ Notifications and deep links
 8. ✅ Settings, CSV and photo export
-9. Light/dark and Dynamic Type polish
+9. ✅ Light/dark and Dynamic Type polish
+
+## Acceptance checks
+
+| Check | How to verify |
+| --- | --- |
+| Day number is right across month ends and the March/October clock changes | `PlanCalendarTests` (⌘U), which pins Europe/London |
+| A full day's entry takes under 2 minutes and survives force-quit | Time a real entry; type a note, swipe the app away straight after, reopen |
+| Morning and evening reminders fire with the app closed | Settings → set times 2 minutes ahead, lock the phone. In debug builds, Settings → Debug → Pending notifications shows what's booked and can send a test |
+| No evening reminder on a completed day | Complete today, then check the pending list: tonight's check-in is gone. Also `ReminderPlannerTests` |
+| Editing activities doesn't change past days | Remove an activity in Settings, open an earlier day: it's still listed with its tick. `ProgressTests`, `LogExportTests` |
+| Export gives one CSV row per day and all photos | Settings → Export log as CSV, and Export photos (a zip named by day). `LogExportTests` |
+| Light and dark, and the largest text size | Xcode → Debug → Environment Overrides: switch appearance and drag Dynamic Type to AX5 on each tab |
+
+At accessibility text sizes, rows stack their label above their value or
+control instead of truncating; the big day number stops growing at AX1.
+Reduce Motion swaps the slide-ins for fades.

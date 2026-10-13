@@ -39,6 +39,7 @@ struct CameraView: View {
         .foregroundStyle(.white)
         .preferredColorScheme(.dark)
         .statusBarHidden()
+        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
         .task { await camera.start() }
         .onDisappear { camera.stop() }
         .sensoryFeedback(.impact(weight: .medium), trigger: camera.isCapturing) { _, new in new }

@@ -72,7 +72,7 @@ struct SettingsScreen: View {
 
     private var planSection: some View {
         Section {
-            HStack {
+            AdaptiveStack {
                 Text("Name").foregroundStyle(Tokens.Colour.ink)
                 TextField("Name", text: $plan.name)
                     .multilineTextAlignment(.trailing)
@@ -214,9 +214,9 @@ struct SettingsScreen: View {
             Button {
                 export { try await Exporter.photosZip(in: context) }
             } label: {
-                HStack {
+                AdaptiveStack {
                     Text("Export photos").foregroundStyle(Tokens.Colour.accent)
-                    Spacer()
+                    AdaptiveSpacer()
                     if isExporting {
                         ProgressView()
                     } else {
@@ -252,9 +252,9 @@ struct SettingsScreen: View {
     // MARK: Helpers
 
     private func row(_ title: String, value: String) -> some View {
-        HStack {
+        AdaptiveStack {
             Text(title).foregroundStyle(Tokens.Colour.ink)
-            Spacer()
+            AdaptiveSpacer()
             Text(value).foregroundStyle(Tokens.Colour.ink2)
         }
         .frame(minHeight: Tokens.Size.row)

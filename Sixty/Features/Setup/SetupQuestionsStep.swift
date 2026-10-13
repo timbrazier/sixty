@@ -10,11 +10,11 @@ struct SetupQuestionsStep: View {
             Section {
                 ForEach(draft.questions) { question in
                     Button { editing = question } label: {
-                        HStack {
+                        AdaptiveStack {
                             Text(question.prompt)
                                 .font(Tokens.Font.body)
                                 .foregroundStyle(Tokens.Colour.ink)
-                            Spacer(minLength: Tokens.Space.xs)
+                            AdaptiveSpacer()
                             Text(question.summary)
                                 .font(Tokens.Font.subheadline)
                                 .foregroundStyle(Tokens.Colour.ink2)

@@ -107,12 +107,58 @@ enum Tokens {
     }
 }
 
+extension Tokens {
+    /// UIKit versions of the colours the system chrome needs.
+    enum UIColour {
+        static let bg = UIColor(light: 0xF4F2EE, dark: 0x0E0E0D)
+        static let ink = UIColor(light: 0x1B1A18, dark: 0xF3F1EC)
+        static let ink3 = UIColor(light: 0x7D7870, dark: 0x7E7972)
+        static let accent = UIColor(light: 0xC63F19, dark: 0xF26B42)
+        static let line = UIColor(light: 0xDDD9D2, dark: 0x2F2D2A)
+    }
+
+    /// Tab bar and navigation bar in the screen background, ink titles,
+    /// ink-3 inactive tabs. Called once at launch.
+    @MainActor
+    static func applySystemAppearance() {
+        let tabBar = UITabBarAppearance()
+        tabBar.configureWithOpaqueBackground()
+        tabBar.backgroundColor = UIColour.bg
+        tabBar.shadowColor = UIColour.line
+        for layout in [tabBar.stackedLayoutAppearance, tabBar.inlineLayoutAppearance, tabBar.compactInlineLayoutAppearance] {
+            layout.normal.iconColor = UIColour.ink3
+            layout.normal.titleTextAttributes = [.foregroundColor: UIColour.ink3]
+            layout.selected.iconColor = UIColour.accent
+            layout.selected.titleTextAttributes = [.foregroundColor: UIColour.accent]
+        }
+        UITabBar.appearance().standardAppearance = tabBar
+        UITabBar.appearance().scrollEdgeAppearance = tabBar
+
+        let navBar = UINavigationBarAppearance()
+        navBar.configureWithOpaqueBackground()
+        navBar.backgroundColor = UIColour.bg
+        navBar.shadowColor = .clear
+        navBar.titleTextAttributes = [.foregroundColor: UIColour.ink]
+        navBar.largeTitleTextAttributes = [.foregroundColor: UIColour.ink]
+        UINavigationBar.appearance().standardAppearance = navBar
+        UINavigationBar.appearance().scrollEdgeAppearance = navBar
+        UINavigationBar.appearance().compactAppearance = navBar
+    }
+}
+
+extension UIColor {
+    /// A colour that switches with light and dark mode.
+    convenience init(light: UInt32, dark: UInt32) {
+        self.init { traits in
+            UIColor(hex: traits.userInterfaceStyle == .dark ? dark : light)
+        }
+    }
+}
+
 extension Color {
     /// A colour that switches with light and dark mode.
     init(light: UInt32, dark: UInt32) {
-        self.init(uiColor: UIColor { traits in
-            UIColor(hex: traits.userInterfaceStyle == .dark ? dark : light)
-        })
+        self.init(uiColor: UIColor(light: light, dark: dark))
     }
 }
 

@@ -100,9 +100,9 @@ struct QuestionsEditor: View {
                         editing = .init(id: question.id, prompt: question.prompt, kind: question.kind,
                                         unit: question.unit ?? "", step: question.step, isOptional: question.isOptional)
                     } label: {
-                        HStack {
+                        AdaptiveStack {
                             Text(question.prompt).foregroundStyle(Tokens.Colour.ink)
-                            Spacer()
+                            AdaptiveSpacer()
                             Text(question.summary)
                                 .font(Tokens.Font.subheadline)
                                 .foregroundStyle(Tokens.Colour.ink2)

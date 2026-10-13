@@ -10,7 +10,7 @@ struct SetupBasicsStep: View {
     var body: some View {
         List {
             Section {
-                HStack {
+                AdaptiveStack {
                     Text("Name").foregroundStyle(Tokens.Colour.ink)
                     TextField("Autumn reset", text: $draft.name)
                         .multilineTextAlignment(.trailing)

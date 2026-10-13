@@ -57,17 +57,20 @@ struct PlanCountdownView: View {
                                 if index > 0 { CardDivider() }
                                 HStack(spacing: Tokens.Space.s) {
                                     Circle().fill(Tokens.Colour.ink3).frame(width: 6, height: 6)
-                                    Text(activity.title)
-                                        .font(Tokens.Font.body)
-                                        .foregroundStyle(Tokens.Colour.ink)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                    if let target = activity.target {
-                                        Text(target)
-                                            .font(Tokens.Font.subheadline)
-                                            .foregroundStyle(Tokens.Colour.ink2)
+                                    AdaptiveStack {
+                                        Text(activity.title)
+                                            .font(Tokens.Font.body)
+                                            .foregroundStyle(Tokens.Colour.ink)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                        if let target = activity.target {
+                                            Text(target)
+                                                .font(Tokens.Font.subheadline)
+                                                .foregroundStyle(Tokens.Colour.ink2)
+                                        }
                                     }
                                 }
                                 .padding(.horizontal, Tokens.Space.m)
+                                .padding(.vertical, Tokens.Space.xs)
                                 .frame(minHeight: Tokens.Size.row - 4)
                                 .accessibilityElement(children: .combine)
                             }

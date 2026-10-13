@@ -18,6 +18,7 @@ struct SixtyApp: App {
         // Every save may change tonight's check-in, so redo the reminders.
         saver.onSaved = { NotificationScheduler.reschedule(in: context) }
         _saver = State(initialValue: saver)
+        Tokens.applySystemAppearance()
     }
 
     var body: some Scene {

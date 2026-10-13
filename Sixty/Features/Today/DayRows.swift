@@ -58,15 +58,16 @@ struct ActivityRow: View {
         Button(action: action) {
             HStack(spacing: Tokens.Space.s) {
                 TickMark(isOn: isDone, isUpcoming: isLocked)
-                Text(title)
-                    .font(Tokens.Font.body)
-                    .foregroundStyle(isLocked ? Tokens.Colour.ink3 : Tokens.Colour.ink)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                if let target {
-                    Text(target)
-                        .font(Tokens.Font.subheadline)
-                        .foregroundStyle(Tokens.Colour.ink2)
-                        .multilineTextAlignment(.trailing)
+                AdaptiveStack {
+                    Text(title)
+                        .font(Tokens.Font.body)
+                        .foregroundStyle(isLocked ? Tokens.Colour.ink3 : Tokens.Colour.ink)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    if let target {
+                        Text(target)
+                            .font(Tokens.Font.subheadline)
+                            .foregroundStyle(Tokens.Colour.ink2)
+                    }
                 }
             }
             .padding(.horizontal, Tokens.Space.m)
@@ -90,6 +91,8 @@ struct TickMark: View {
     /// Future days: a dashed outline that can't be ticked.
     var isUpcoming = false
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         ZStack {
             Circle()
@@ -100,7 +103,7 @@ struct TickMark: View {
                 .fill(Tokens.Colour.accent)
                 .scaleEffect(isOn ? 1 : 0.01)
                 .opacity(isOn ? 1 : 0)
-                .animation(isOn ? Tokens.Motion.tickFill : nil, value: isOn)
+                .animation(isOn ? (reduceMotion ? Animation.easeOut(duration: 0.12) : Tokens.Motion.tickFill) : nil, value: isOn)
             CheckShape()
                 .trim(from: 0, to: isOn ? 1 : 0)
                 .stroke(Tokens.Colour.accentInk, style: StrokeStyle(lineWidth: 2.2, lineCap: .round, lineJoin: .round))
@@ -169,7 +172,7 @@ struct PastDayBanner: View {
     let onToday: () -> Void
 
     var body: some View {
-        HStack(spacing: Tokens.Space.s) {
+        AdaptiveStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Editing a past day")
                     .font(Tokens.Font.headline)
@@ -178,7 +181,7 @@ struct PastDayBanner: View {
                     .font(Tokens.Font.subheadline)
                     .foregroundStyle(Tokens.Colour.ink2)
             }
-            Spacer(minLength: 0)
+            AdaptiveSpacer()
             Button("Today", action: onToday)
                 .font(Tokens.Font.headline)
                 .foregroundStyle(Tokens.Colour.ink)

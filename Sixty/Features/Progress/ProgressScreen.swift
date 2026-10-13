@@ -248,7 +248,7 @@ struct DayDetailCard: View {
     @Environment(\.today) private var today
 
     var body: some View {
-        HStack(spacing: Tokens.Space.m) {
+        AdaptiveStack(spacing: Tokens.Space.m) {
             Text("\(plan.calendar.dayNumber(for: day))")
                 .font(Tokens.Font.stat(44))
                 .foregroundStyle(day > today ? Tokens.Colour.ink3 : Tokens.Colour.ink)

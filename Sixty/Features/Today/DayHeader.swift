@@ -20,6 +20,8 @@ struct DayHeader: View {
                 Text(title)
                     .font(Tokens.Font.headline)
                     .foregroundStyle(Tokens.Colour.ink)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
                     .contentTransition(.opacity)
                 HStack(spacing: Tokens.Space.xxs) {
                     if isSaving {

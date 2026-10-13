@@ -76,6 +76,7 @@ struct SegmentedChoice<Value: Hashable>: View {
         }
         .padding(Tokens.Space.xxs)
         .background(Tokens.Colour.surface2, in: RoundedRectangle(cornerRadius: Tokens.Radius.chip))
+        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
     }
 }
 
@@ -87,19 +88,22 @@ struct ReminderRow: View {
     @Binding var minutes: Int
 
     var body: some View {
-        HStack(spacing: Tokens.Space.s) {
+        AdaptiveStack {
             Text(title)
                 .font(Tokens.Font.body)
                 .foregroundStyle(Tokens.Colour.ink)
-            Spacer(minLength: Tokens.Space.xs)
-            DatePicker(title, selection: timeBinding, displayedComponents: .hourAndMinute)
-                .labelsHidden()
-                .disabled(!isOn)
-                .opacity(isOn ? 1 : 0.5)
-            Toggle(title, isOn: $isOn)
-                .labelsHidden()
-                .tint(Tokens.Colour.accent)
+            AdaptiveSpacer()
+            HStack(spacing: Tokens.Space.s) {
+                DatePicker(title, selection: timeBinding, displayedComponents: .hourAndMinute)
+                    .labelsHidden()
+                    .disabled(!isOn)
+                    .opacity(isOn ? 1 : 0.5)
+                Toggle(title, isOn: $isOn)
+                    .labelsHidden()
+                    .tint(Tokens.Colour.accent)
+            }
         }
+        .padding(.vertical, Tokens.Space.xxs)
         .frame(minHeight: Tokens.Size.row)
     }
 
@@ -149,5 +153,31 @@ extension View {
     func surfaceRow() -> some View {
         self.listRowBackground(Tokens.Colour.surface)
             .listRowSeparatorTint(Tokens.Colour.line)
+    }
+}
+
+/// A row that lays out side by side, and stacks at accessibility text sizes
+/// so labels grow in height rather than truncating.
+struct AdaptiveStack<Content: View>: View {
+    var alignment: VerticalAlignment = .center
+    var spacing: CGFloat = Tokens.Space.s
+    @ViewBuilder let content: Content
+
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    var body: some View {
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: Tokens.Space.xxs))
+            : AnyLayout(HStackLayout(alignment: alignment, spacing: spacing))
+        layout { content }
+    }
+}
+
+/// Fills the remaining width side by side; nothing when stacked.
+struct AdaptiveSpacer: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    var body: some View {
+        if !typeSize.isAccessibilitySize { Spacer(minLength: Tokens.Space.xs) }
     }
 }

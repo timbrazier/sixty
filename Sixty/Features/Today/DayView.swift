@@ -19,6 +19,7 @@ struct DayView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.today) private var today
     @Environment(AutoSaver.self) private var saver
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var entries: [DayEntry]
 
     @State private var titleCollapsed = false
@@ -89,7 +90,7 @@ struct DayView: View {
 
             if isStripOpen {
                 DayStrip(plan: plan, selected: day, onSelect: onSelect)
-                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
             }
 
             ScrollView {
@@ -117,7 +118,7 @@ struct DayView: View {
                                 .transition(.opacity)
                         } else if progress.isComplete {
                             DayCompleteBanner(dayNumber: dayNumber, detail: completeDetail)
-                                .transition(.move(edge: .top).combined(with: .opacity))
+                                .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
                         }
                         checklist
                         if !folded.isEmpty { foldedChips }
