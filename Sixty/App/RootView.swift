@@ -17,7 +17,7 @@ struct RootView: View {
             if let plan = plans.first {
                 MainTabView(plan: plan)
             } else {
-                SetupPlaceholderView()
+                PlanSetupView()
             }
         }
         .environment(\.today, today)
@@ -48,15 +48,7 @@ struct MainTabView: View {
     }
 }
 
-// MARK: Placeholders until steps 2–8 replace them
-
-private struct SetupPlaceholderView: View {
-    var body: some View {
-        ContentUnavailableView("New plan", systemImage: "flag",
-                               description: Text("Plan setup arrives in step 2."))
-            .background(Tokens.Colour.bg)
-    }
-}
+// MARK: Placeholder until steps 3–8 replace it
 
 private struct PlaceholderScreen: View {
     let title: String

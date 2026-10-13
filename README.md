@@ -31,9 +31,10 @@ command line: `cd SixtyCore && swift test`.
 project.yml           XcodeGen spec
 Sixty/
   App/                App entry, root view, the shared "today" value
+  Features/Setup/     Three-step plan setup
   Models/             SwiftData models: Plan, Activity, Question, DayEntry
   Services/           EntryStore (fetch/create entries); photos, notifications, export to come
-  Design/             DesignTokens.swift — colours, spacing, radii, type, motion
+  Design/             DesignTokens.swift (colours, spacing, radii, type, motion) and shared components
   Preview/            Sample "Autumn reset" plan for SwiftUI previews
   Resources/          Assets, Barlow Condensed (SIL Open Font License)
 SixtyCore/            Foundation-only logic, unit-tested:
@@ -56,7 +57,7 @@ SixtyCore/            Foundation-only logic, unit-tested:
 ## Build progress
 
 1. ✅ Project setup, models, sample data, design tokens
-2. Plan setup flow
+2. ✅ Plan setup flow
 3. Today screen with checklist, questions, journal, auto-save
 4. Photo capture and storage
 5. Day navigation and Progress grid with streak
