@@ -6,7 +6,9 @@ import SixtyCore
 struct TodayScreen: View {
     let plan: Plan
     @Environment(\.today) private var today
+    @Environment(AppRouter.self) private var router
     @State private var selectedDay: DayKey?
+    @State private var isStripOpen = false
 
     var body: some View {
         NavigationStack {
@@ -14,10 +16,9 @@ struct TodayScreen: View {
                 if case .notStarted(let daysToGo) = plan.calendar.phase(on: today) {
                     PlanCountdownView(plan: plan, daysToGo: daysToGo)
                 } else {
-                    DayView(plan: plan, day: shownDay,
-                            onPrevious: shownDay > plan.calendar.startDay ? { move(by: -1) } : nil,
-                            onNext: shownDay < currentDay ? { move(by: 1) } : nil)
+                    DayView(plan: plan, day: shownDay, isStripOpen: $isStripOpen, onSelect: select)
                         .id(shownDay)
+                        .transition(.opacity)
                 }
             }
             .toolbar(.hidden, for: .navigationBar)
@@ -27,6 +28,8 @@ struct TodayScreen: View {
             // A new day: go to it rather than staying on yesterday.
             selectedDay = nil
         }
+        .onChange(of: router.requestedDay) { _, _ in takeRequest() }
+        .onAppear(perform: takeRequest)
     }
 
     /// Today, or the last day once the plan has finished.
@@ -34,9 +37,18 @@ struct TodayScreen: View {
 
     private var shownDay: DayKey { selectedDay ?? currentDay }
 
-    private func move(by days: Int) {
-        let target = shownDay.adding(days: days)
-        selectedDay = target == currentDay ? nil : target
+    private func select(_ day: DayKey) {
+        guard plan.calendar.contains(day) else { return }
+        withAnimation(.easeOut(duration: 0.15)) {
+            selectedDay = day == currentDay ? nil : day
+        }
+    }
+
+    /// A day opened from Progress, or (step 7) from a notification.
+    private func takeRequest() {
+        guard let day = router.requestedDay else { return }
+        router.requestedDay = nil
+        select(day)
     }
 }
 

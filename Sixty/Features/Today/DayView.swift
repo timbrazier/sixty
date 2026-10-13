@@ -6,11 +6,15 @@ import SixtyCore
 /// One day's log: bib with ring, activities checklist, photo slot, questions
 /// and note. Every edit goes through `edit(_:)`, which creates the entry on
 /// first use and hands off to the auto-saver.
+///
+/// Past days are editable, with an "Editing a past day" banner. Future days
+/// are read-only. Swipe on the bib, or use the arrows, to move a day; tap
+/// the title for the 7-day strip.
 struct DayView: View {
     let plan: Plan
     let day: DayKey
-    var onPrevious: (() -> Void)?
-    var onNext: (() -> Void)?
+    @Binding var isStripOpen: Bool
+    let onSelect: (DayKey) -> Void
 
     @Environment(\.modelContext) private var context
     @Environment(\.today) private var today
@@ -25,13 +29,18 @@ struct DayView: View {
     @State private var ghostFilename: String?
     @State private var photoFailed = false
 
+    // Swipe between days
+    @State private var dragX: CGFloat = 0
+    @State private var pageWidth: CGFloat = 390
+    @State private var blockedBounces = 0
+
     enum Fold: Hashable { case photo, questions, note }
 
-    init(plan: Plan, day: DayKey, onPrevious: (() -> Void)? = nil, onNext: (() -> Void)? = nil) {
+    init(plan: Plan, day: DayKey, isStripOpen: Binding<Bool>, onSelect: @escaping (DayKey) -> Void) {
         self.plan = plan
         self.day = day
-        self.onPrevious = onPrevious
-        self.onNext = onNext
+        _isStripOpen = isStripOpen
+        self.onSelect = onSelect
         let raw = day.rawValue
         _entries = Query(filter: #Predicate<DayEntry> { $0.dayKey == raw })
     }
@@ -39,6 +48,12 @@ struct DayView: View {
     private var entry: DayEntry? { entries.first }
     private var isLocked: Bool { day > today }
     private var dayNumber: Int { plan.calendar.dayNumber(for: day) }
+    /// Today, or the last day once the plan has finished.
+    private var currentDay: DayKey { min(today, plan.calendar.endDay) }
+    private var isPastDay: Bool { day < currentDay }
+    private var canGoBack: Bool { day > plan.calendar.startDay }
+    /// Arrows and swipes stop at today; the strip can still open future days.
+    private var canGoForward: Bool { day < currentDay }
 
     /// The day's own snapshot once it has an entry, otherwise the plan as it is now.
     private var activities: [Activity] {
@@ -58,14 +73,28 @@ struct DayView: View {
                                        answeredQuestionIDs: [])
     }
 
+    private var bibLabel: String {
+        if day == plan.calendar.endDay && progress.isComplete { return "Plan complete" }
+        if isPastDay { return "Editing" }
+        return plan.name
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             DayHeader(title: title, subtitle: subtitle, isSaving: saver.state == .saving && entry != nil,
-                      isSaved: entry != nil, onPrevious: onPrevious, onNext: onNext)
+                      isSaved: entry != nil && !isLocked,
+                      onPrevious: canGoBack ? { onSelect(day.adding(days: -1)) } : nil,
+                      onNext: canGoForward ? { onSelect(day.adding(days: 1)) } : nil,
+                      onTitleTap: { withAnimation(.snappy) { isStripOpen.toggle() } })
+
+            if isStripOpen {
+                DayStrip(plan: plan, selected: day, onSelect: onSelect)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
 
             ScrollView {
                 VStack(alignment: .leading, spacing: Tokens.Space.xl) {
-                    BibCard(label: day == plan.calendar.endDay && progress.isComplete ? "Plan complete" : plan.name,
+                    BibCard(label: bibLabel,
                             dayNumber: dayNumber, length: plan.lengthDays, date: day.longName,
                             done: progress.activitiesDone, total: progress.activitiesTotal,
                             isComplete: progress.isComplete, isLocked: isLocked)
@@ -74,25 +103,37 @@ struct DayView: View {
                         } action: { collapsed in
                             withAnimation(.easeOut(duration: 0.2)) { titleCollapsed = collapsed }
                         }
+                        .simultaneousGesture(swipe)
 
-                    if progress.isComplete {
-                        DayCompleteBanner(dayNumber: dayNumber, detail: completeDetail)
-                            .transition(.move(edge: .top).combined(with: .opacity))
+                    if isLocked {
+                        lockedNotice
+                        checklist
+                    } else {
+                        if isPastDay {
+                            PastDayBanner { onSelect(currentDay) }
+                        }
+                        if progress.isComplete {
+                            DayCompleteBanner(dayNumber: dayNumber, detail: completeDetail)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                        }
+                        checklist
+                        if !folded.isEmpty { foldedChips }
+                        sections
                     }
-
-                    checklist
-                    if !folded.isEmpty { foldedChips }
-                    sections
                 }
                 .padding(.horizontal, Tokens.Space.m)
                 .padding(.vertical, Tokens.Space.s)
+                .offset(x: dragX)
                 .animation(Tokens.Motion.ring, value: progress.isComplete)
             }
             .scrollDismissesKeyboard(.interactively)
+            .overlay(alignment: dragX < 0 ? .trailing : .leading) { dragLock }
         }
         .background(Tokens.Colour.bg)
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pageWidth = $0 }
         .sensoryFeedback(.impact(weight: .light), trigger: progress.activitiesDone) { old, new in new > old }
         .sensoryFeedback(.success, trigger: progress.isComplete) { _, new in new }
+        .sensoryFeedback(.impact(flexibility: .rigid), trigger: blockedBounces)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
@@ -109,21 +150,95 @@ struct DayView: View {
         }
     }
 
+    // MARK: Swiping
+
+    /// Swipe left for the next day, right for the previous one. Where there's
+    /// nowhere to go (a future day, or past Day 1 or the last day) the page
+    /// moves about 30% and springs back with a rigid haptic.
+    private var swipe: some Gesture {
+        DragGesture(minimumDistance: 16)
+            .onChanged { value in
+                let dx = value.translation.width
+                guard abs(dx) > abs(value.translation.height) else { return }
+                if isBlocked(dx) {
+                    let limit = pageWidth * 0.3
+                    dragX = limit * tanh(dx / limit)
+                } else {
+                    dragX = dx
+                }
+            }
+            .onEnded { value in
+                let dx = value.translation.width
+                if abs(dx) > 80 && abs(dx) > abs(value.translation.height) && !isBlocked(dx) {
+                    onSelect(day.adding(days: dx < 0 ? 1 : -1))
+                } else {
+                    if isBlocked(dx) && abs(dx) > 40 { blockedBounces += 1 }
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { dragX = 0 }
+                }
+            }
+    }
+
+    private func isBlocked(_ dx: CGFloat) -> Bool {
+        dx < 0 ? !canGoForward : !canGoBack
+    }
+
+    /// The lock that shows while pulling towards tomorrow.
+    @ViewBuilder
+    private var dragLock: some View {
+        if dragX < -20 && !canGoForward && day == today && day < plan.calendar.endDay {
+            Image(systemName: "lock.fill")
+                .font(.title2)
+                .foregroundStyle(Tokens.Colour.ink3)
+                .frame(width: 56, height: 56)
+                .background(Tokens.Colour.surface2, in: Circle())
+                .padding(.trailing, Tokens.Space.m)
+                .opacity(min(1, Double(-dragX) / 80))
+                .accessibilityHidden(true)
+        }
+    }
+
     // MARK: Sections
+
+    /// "Day 15 opens tomorrow · You can look ahead. Logging starts at midnight."
+    private var lockedNotice: some View {
+        let daysAway = today.days(to: day)
+        return VStack(spacing: Tokens.Space.xs) {
+            Text(daysAway == 1 ? "Day \(dayNumber) opens tomorrow" : "Day \(dayNumber) opens \(day.shortName)")
+                .font(Tokens.Font.title3)
+                .foregroundStyle(Tokens.Colour.ink)
+            Text(daysAway == 1 ? "You can look ahead. Logging starts at midnight."
+                               : "You can look ahead. Logging starts on the day.")
+                .font(Tokens.Font.subheadline)
+                .foregroundStyle(Tokens.Colour.ink2)
+            Button("Back to Day \(plan.calendar.dayNumber(for: currentDay))") { onSelect(currentDay) }
+                .font(Tokens.Font.headline)
+                .foregroundStyle(Tokens.Colour.ink)
+                .padding(.horizontal, Tokens.Space.xl)
+                .frame(minHeight: Tokens.Size.minHit)
+                .background(Tokens.Colour.surface, in: Capsule())
+                .buttonStyle(.plain)
+                .padding(.top, Tokens.Space.xs)
+        }
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
+    }
 
     private var checklist: some View {
         VStack(alignment: .leading, spacing: Tokens.Space.xs) {
-            SectionHeader("Activities", trailing: "\(progress.activitiesDone) of \(progress.activitiesTotal)")
+            if !isLocked {
+                SectionHeader("Activities", trailing: "\(progress.activitiesDone) of \(progress.activitiesTotal)")
+            }
             Card {
                 ForEach(Array(activities.enumerated()), id: \.element.id) { index, activity in
                     if index > 0 { CardDivider(leading: 58) }
-                    ActivityRow(title: activity.title, target: activity.target,
+                    ActivityRow(title: activity.title, target: isLocked ? nil : activity.target,
                                 isDone: progress.completedActivityIDs.contains(activity.id),
                                 isLocked: isLocked) {
                         toggle(activity.id)
                     }
                 }
             }
+            .opacity(isLocked ? 0.7 : 1)
         }
     }
 
@@ -202,7 +317,7 @@ struct DayView: View {
 
     private var subtitle: String {
         if isLocked { return "Locked" }
-        guard let entry else { return "Nothing logged yet" }
+        guard let entry else { return isPastDay ? "Past day · Nothing logged" : "Nothing logged yet" }
         if saver.state == .saving { return "Saving…" }
         if saver.state == .failed { return "Couldn't save" }
         let time = entry.updatedAt.formatted(date: .omitted, time: .shortened)
@@ -357,13 +472,17 @@ func dismissKeyboard() {
 }
 
 #Preview("Day 14, partial") {
-    PreviewHost { plan in DayView(plan: plan, day: PreviewData.today) }
+    PreviewHost { plan in DayView(plan: plan, day: PreviewData.today, isStripOpen: .constant(false)) { _ in } }
 }
 
-#Preview("Day 13, complete") {
-    PreviewHost { plan in DayView(plan: plan, day: PreviewData.today.adding(days: -1)) }
+#Preview("Day 12, past day") {
+    PreviewHost { plan in
+        DayView(plan: plan, day: PreviewData.today.adding(days: -2), isStripOpen: .constant(true)) { _ in }
+    }
 }
 
 #Preview("Day 15, locked") {
-    PreviewHost { plan in DayView(plan: plan, day: PreviewData.today.adding(days: 1)) }
+    PreviewHost { plan in
+        DayView(plan: plan, day: PreviewData.today.adding(days: 1), isStripOpen: .constant(true)) { _ in }
+    }
 }

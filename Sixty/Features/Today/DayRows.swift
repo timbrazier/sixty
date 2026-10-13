@@ -57,8 +57,7 @@ struct ActivityRow: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: Tokens.Space.s) {
-                TickMark(isOn: isDone)
-                    .opacity(isLocked ? 0.4 : 1)
+                TickMark(isOn: isDone, isUpcoming: isLocked)
                 Text(title)
                     .font(Tokens.Font.body)
                     .foregroundStyle(isLocked ? Tokens.Colour.ink3 : Tokens.Colour.ink)
@@ -88,11 +87,14 @@ struct ActivityRow: View {
 /// (160 ms), then the check stroke draws in (200 ms). Unticking reverses at once.
 struct TickMark: View {
     let isOn: Bool
+    /// Future days: a dashed outline that can't be ticked.
+    var isUpcoming = false
 
     var body: some View {
         ZStack {
             Circle()
-                .strokeBorder(Tokens.Colour.ink3, lineWidth: 1.5)
+                .strokeBorder(isUpcoming ? Tokens.Colour.line2 : Tokens.Colour.ink3,
+                              style: StrokeStyle(lineWidth: 1.5, dash: isUpcoming ? [3, 3] : []))
                 .opacity(isOn ? 0 : 1)
             Circle()
                 .fill(Tokens.Colour.accent)
@@ -159,5 +161,33 @@ struct NoteField: View {
             .padding(Tokens.Space.m)
             .background(Tokens.Colour.surface, in: RoundedRectangle(cornerRadius: Tokens.Radius.list))
             .disabled(isLocked)
+    }
+}
+
+/// "Editing a past day · Changes save automatically.   [Today]"
+struct PastDayBanner: View {
+    let onToday: () -> Void
+
+    var body: some View {
+        HStack(spacing: Tokens.Space.s) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Editing a past day")
+                    .font(Tokens.Font.headline)
+                    .foregroundStyle(Tokens.Colour.ink)
+                Text("Changes save automatically.")
+                    .font(Tokens.Font.subheadline)
+                    .foregroundStyle(Tokens.Colour.ink2)
+            }
+            Spacer(minLength: 0)
+            Button("Today", action: onToday)
+                .font(Tokens.Font.headline)
+                .foregroundStyle(Tokens.Colour.ink)
+                .padding(.horizontal, Tokens.Space.m)
+                .frame(minHeight: Tokens.Size.minHit - 6)
+                .background(Tokens.Colour.surface, in: Capsule())
+                .buttonStyle(.plain)
+        }
+        .padding(Tokens.Space.m)
+        .background(Tokens.Colour.surface2, in: RoundedRectangle(cornerRadius: Tokens.Radius.banner))
     }
 }

@@ -9,6 +9,8 @@ struct DayHeader: View {
     let isSaved: Bool
     var onPrevious: (() -> Void)?
     var onNext: (() -> Void)?
+    /// Tapping the title opens and closes the 7-day strip.
+    var onTitleTap: (() -> Void)?
 
     var body: some View {
         HStack(spacing: Tokens.Space.s) {
@@ -31,8 +33,12 @@ struct DayHeader: View {
                 .foregroundStyle(Tokens.Colour.ink2)
             }
             .multilineTextAlignment(.center)
+            .frame(minHeight: Tokens.Size.minHit)
+            .contentShape(Rectangle())
+            .onTapGesture { onTitleTap?() }
             .accessibilityElement(children: .combine)
-            .accessibilityAddTraits(.isHeader)
+            .accessibilityAddTraits(onTitleTap == nil ? [.isHeader] : [.isHeader, .isButton])
+            .accessibilityHint(onTitleTap == nil ? "" : "Shows or hides the week")
             Spacer(minLength: 0)
             arrow("chevron.right", label: "Next day", action: onNext)
         }

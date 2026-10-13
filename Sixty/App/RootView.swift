@@ -39,22 +39,28 @@ struct RootView: View {
 
 struct MainTabView: View {
     let plan: Plan
+    @Environment(AppRouter.self) private var router
 
     var body: some View {
-        TabView {
+        @Bindable var router = router
+        TabView(selection: $router.tab) {
             TodayScreen(plan: plan)
                 .tabItem { Label("Today", systemImage: "circle.circle") }
-            PlaceholderScreen(title: "Progress", plan: plan)
-                .tabItem { Label("Progress", systemImage: "square.grid.3x3") }
+                .tag(AppRouter.Tab.today)
+            ProgressScreen(plan: plan)
+                .tabItem { Label("Progress", systemImage: "square.grid.2x2") }
+                .tag(AppRouter.Tab.progress)
             PlaceholderScreen(title: "Photos", plan: plan)
-                .tabItem { Label("Photos", systemImage: "photo.on.rectangle") }
+                .tabItem { Label("Photos", systemImage: "photo") }
+                .tag(AppRouter.Tab.photos)
             PlaceholderScreen(title: "Settings", plan: plan)
                 .tabItem { Label("Settings", systemImage: "gearshape") }
+                .tag(AppRouter.Tab.settings)
         }
     }
 }
 
-// MARK: Placeholder until steps 5–8 replace it
+// MARK: Placeholder until steps 6 and 8 replace it
 
 private struct PlaceholderScreen: View {
     let title: String
@@ -95,4 +101,5 @@ private struct PlaceholderScreen: View {
     return RootView()
         .modelContainer(container)
         .environment(AutoSaver(context: container.mainContext))
+        .environment(AppRouter())
 }

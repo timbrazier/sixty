@@ -34,6 +34,7 @@ Sixty/
   Features/Setup/     Three-step plan setup
   Features/Today/     Today tab: countdown, bib and ring, checklist, questions, note
   Features/Photo/     Progress-photo camera (Day 1 ghost, volume shutter) and photo slot
+  Features/Progress/  Stats, the plan grid and day detail
   Models/             SwiftData models: Plan, Activity, Question, DayEntry
   Services/           EntryStore, PhotoStore (Documents/Photos JPEGs); notifications and export to come
   Design/             DesignTokens.swift (colours, spacing, radii, type, motion) and shared components
@@ -41,7 +42,7 @@ Sixty/
   Resources/          Assets, Barlow Condensed (SIL Open Font License)
 SixtyCore/            Foundation-only logic, unit-tested:
                       DayKey, PlanCalendar, DayProgress/DayStatus, Streak,
-                      CSVWriter, NotificationCopy
+                      PlanStats, CSVWriter, NotificationCopy
 ```
 
 ## How days work
@@ -62,7 +63,7 @@ SixtyCore/            Foundation-only logic, unit-tested:
 2. ✅ Plan setup flow
 3. ✅ Today screen with checklist, questions, journal, auto-save
 4. ✅ Photo capture and storage
-5. Day navigation and Progress grid with streak
+5. ✅ Day navigation and Progress grid with streak
 6. Photos timeline and Day 1 vs latest comparison
 7. Notifications and deep links
 8. Settings, CSV and photo export

@@ -5,6 +5,7 @@ import SwiftData
 struct SixtyApp: App {
     let container: ModelContainer
     @State private var saver: AutoSaver
+    @State private var router = AppRouter()
 
     init() {
         do {
@@ -19,6 +20,7 @@ struct SixtyApp: App {
         WindowGroup {
             RootView()
                 .environment(saver)
+                .environment(router)
         }
         .modelContainer(container)
     }

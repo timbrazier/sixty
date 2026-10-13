@@ -10,6 +10,7 @@ struct PreviewHost<Content: View>: View {
     private let today: DayKey
     private let content: (Plan) -> Content
     @State private var saver: AutoSaver
+    @State private var router = AppRouter()
 
     init(today: DayKey = PreviewData.today, @ViewBuilder content: @escaping (Plan) -> Content) {
         let container = PreviewData.container
@@ -29,6 +30,7 @@ struct PreviewHost<Content: View>: View {
         }
         .modelContainer(container)
         .environment(saver)
+        .environment(router)
         .environment(\.today, today)
     }
 }
