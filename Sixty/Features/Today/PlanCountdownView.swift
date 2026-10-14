@@ -6,7 +6,6 @@ struct PlanCountdownView: View {
     let plan: Plan
     let daysToGo: Int
 
-    @Environment(\.modelContext) private var context
     @Environment(\.today) private var today
     @Environment(AutoSaver.self) private var saver
 

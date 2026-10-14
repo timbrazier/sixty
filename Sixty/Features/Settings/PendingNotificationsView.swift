@@ -1,5 +1,6 @@
 #if DEBUG
 import SwiftUI
+import SwiftData
 import UserNotifications
 import SixtyCore
 
