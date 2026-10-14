@@ -12,11 +12,13 @@ struct PreviewHost<Content: View>: View {
     @State private var saver: AutoSaver
     @State private var router = AppRouter()
 
-    init(today: DayKey = PreviewData.today, loggedThrough: Int = 13,
+    /// `today` defaults to Day 14. (A default argument can't read the
+    /// main-actor `PreviewData.today` directly, hence the optional.)
+    init(today: DayKey? = nil, loggedThrough: Int = 13,
          @ViewBuilder content: @escaping (Plan) -> Content) {
         let container = PreviewData.container(loggedThrough: loggedThrough)
         self.container = container
-        self.today = today
+        self.today = today ?? PreviewData.today
         self.content = content
         _saver = State(initialValue: AutoSaver(context: container.mainContext))
     }
