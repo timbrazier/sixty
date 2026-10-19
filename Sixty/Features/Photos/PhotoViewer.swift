@@ -56,7 +56,7 @@ struct PhotoViewer: View {
             .padding(.horizontal, Tokens.Space.s)
 
             TabView(selection: $current) {
-                ForEach(entries) { entry in
+                ForEach(entries, id: \.id) { entry in
                     if let filename = entry.photoFilename {
                         PhotoThumbnail(filename: filename, maxPixel: 2000, contentMode: .fit)
                             .tag(entry.dayKey)

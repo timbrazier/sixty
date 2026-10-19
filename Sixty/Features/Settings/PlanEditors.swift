@@ -48,7 +48,7 @@ struct ActivitiesEditor: View {
     }
 
     private func rows(_ activities: [Activity]) -> some View {
-        ForEach(activities) { activity in
+        ForEach(activities, id: \.id) { activity in
             Button {
                 editing = .init(id: activity.id, title: activity.title, target: activity.target ?? "",
                                 isBonus: activity.isBonus)
@@ -121,7 +121,7 @@ struct QuestionsEditor: View {
         let active = plan.activeQuestions
         List {
             Section {
-                ForEach(active) { question in
+                ForEach(active, id: \.id) { question in
                     Button {
                         editing = .init(id: question.id, prompt: question.prompt, kind: question.kind,
                                         unit: question.unit ?? "", step: question.step, isOptional: question.isOptional)
