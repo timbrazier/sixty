@@ -114,24 +114,15 @@ struct SettingsScreen: View {
                         isOn: reminderOn(\.eveningReminderMinutes, default: 21 * 60),
                         minutes: reminderMinutes(\.eveningReminderMinutes))
                 .surfaceRow()
-            ReminderRow(title: "Weekly photo",
-                        isOn: weeklyPhotoOn,
+            ReminderRow(title: "Photo days",
+                        isOn: reminderOn(\.weeklyPhotoMinutes, default: 7 * 60),
                         minutes: reminderMinutes(\.weeklyPhotoMinutes))
                 .surfaceRow()
-            if plan.weeklyPhotoWeekday != nil {
-                Picker("Photo day", selection: weeklyPhotoWeekday) {
-                    ForEach(weekdays, id: \.number) { weekday in
-                        Text(weekday.name).tag(weekday.number)
-                    }
-                }
-                .frame(minHeight: Tokens.Size.row)
-                .surfaceRow()
-            }
         } header: {
             Text("Reminders").sectionLabelStyle()
         } footer: {
             VStack(alignment: .leading, spacing: Tokens.Space.xs) {
-                Text("The evening check-in is skipped on days you've already completed.")
+                Text("The evening check-in is skipped on days you've already completed. Photo days are Day 1 and every 10th day.")
                 if notificationsDenied {
                     Text("Notifications are turned off for Sixty.")
                     Button("Open iOS Settings") {
@@ -163,29 +154,6 @@ struct SettingsScreen: View {
             plan[keyPath: keyPath] = minutes
             reminderChanged(turnedOn: false)
         }
-    }
-
-    private var weeklyPhotoOn: Binding<Bool> {
-        Binding {
-            plan.weeklyPhotoWeekday != nil
-        } set: { isOn in
-            plan.weeklyPhotoWeekday = isOn ? plan.startDay.weekday : nil
-            plan.weeklyPhotoMinutes = isOn ? 7 * 60 : nil
-            reminderChanged(turnedOn: isOn)
-        }
-    }
-
-    private var weeklyPhotoWeekday: Binding<Int> {
-        Binding { plan.weeklyPhotoWeekday ?? plan.startDay.weekday } set: {
-            plan.weeklyPhotoWeekday = $0
-            reminderChanged(turnedOn: false)
-        }
-    }
-
-    /// Monday first, numbered as Calendar does (1 = Sunday).
-    private var weekdays: [(number: Int, name: String)] {
-        let names = Calendar.current.weekdaySymbols
-        return [2, 3, 4, 5, 6, 7, 1].map { ($0, names[$0 - 1]) }
     }
 
     /// Saving reschedules; turning a reminder on also asks for permission

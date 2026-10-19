@@ -68,6 +68,12 @@ struct DayView: View {
         return Set(entry.bonusActivityIDs)
     }
 
+    /// Photos are asked for on Day 1 and every 10th day. A day that already
+    /// has a photo keeps showing it.
+    private var showsPhoto: Bool {
+        plan.calendar.isPhotoDay(day) || entry?.photoFilename != nil
+    }
+
     private var coreActivities: [Activity] { activities.filter { !bonusIDs.contains($0.id) } }
     private var bonusActivities: [Activity] { activities.filter { bonusIDs.contains($0.id) } }
 
@@ -155,7 +161,7 @@ struct DayView: View {
             }
         }
         .onAppear {
-            if progress.isComplete { folded = [.photo, .questions, .note] }
+            if progress.isComplete { folded = showsPhoto ? [.photo, .questions, .note] : [.questions, .note] }
             loadLastAnswers()
             loadGhost()
         }
@@ -267,9 +273,9 @@ struct DayView: View {
 
     @ViewBuilder
     private var sections: some View {
-        if !folded.contains(.photo) {
+        if showsPhoto && !folded.contains(.photo) {
             VStack(alignment: .leading, spacing: Tokens.Space.xs) {
-                SectionHeader("Photo")
+                SectionHeader("Photo", trailing: "Day \(dayNumber)")
                 PhotoSection(filename: entry?.photoFilename,
                              takenAt: entry?.photoTakenAt,
                              ghostFilename: ghostFilename,
@@ -277,6 +283,12 @@ struct DayView: View {
                              onPhoto: setPhoto,
                              onRemove: removePhoto)
             }
+        }
+        if !showsPhoto, let next = plan.calendar.nextPhotoDay(onOrAfter: day) {
+            Label("Next photo: Day \(plan.calendar.dayNumber(for: next)) · \(next.shortName)", systemImage: "camera")
+                .font(Tokens.Font.footnoteRegular)
+                .foregroundStyle(Tokens.Colour.ink2)
+                .padding(.horizontal, Tokens.Space.m)
         }
         if !folded.contains(.questions) && !questions.isEmpty {
             VStack(alignment: .leading, spacing: Tokens.Space.xs) {

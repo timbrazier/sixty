@@ -33,6 +33,28 @@ public struct PlanCalendar: Equatable, Sendable {
         (1...length).contains(dayNumber(for: day))
     }
 
+    /// Progress photos are taken on Day 1 and every 10th day (10, 20, … 60),
+    /// plus the last day when the length isn't a multiple of 10.
+    public static let photoInterval = 10
+
+    public func isPhotoDay(number: Int) -> Bool {
+        guard (1...length).contains(number) else { return false }
+        return number == 1 || number % Self.photoInterval == 0 || number == length
+    }
+
+    public func isPhotoDay(_ day: DayKey) -> Bool {
+        isPhotoDay(number: dayNumber(for: day))
+    }
+
+    public var photoDays: [DayKey] {
+        (1...length).filter { isPhotoDay(number: $0) }.map { day(number: $0) }
+    }
+
+    /// The first photo day on or after `day`, if the plan has one left.
+    public func nextPhotoDay(onOrAfter day: DayKey) -> DayKey? {
+        photoDays.first { $0 >= day }
+    }
+
     public enum Phase: Equatable, Sendable {
         /// The plan hasn't started; `daysToGo` is 1 on the eve of Day 1.
         case notStarted(daysToGo: Int)

@@ -20,8 +20,11 @@ final class Plan {
     /// Reminder times as minutes after midnight; nil means off.
     var morningReminderMinutes: Int?
     var eveningReminderMinutes: Int?
-    /// Weekly photo reminder: weekday 1 = Sunday … 7 = Saturday.
+    /// No longer used: photos moved from weekly to every 10th day. Kept so
+    /// existing stores open unchanged.
     var weeklyPhotoWeekday: Int?
+    /// Reminder time on photo days (Day 1 and every 10th day); nil is off.
+    /// Named from when it was a weekly reminder.
     var weeklyPhotoMinutes: Int?
 
     var createdAt: Date

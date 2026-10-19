@@ -58,6 +58,9 @@ SixtyCore/            Foundation-only logic, unit-tested:
   non-optional question is answered. Bonus habits, the photo and the note are
   tracked but optional. The ring, streak and evening check-in follow the
   non-negotiables.
+- **Photo days** are Day 1 and every 10th day (1, 10, 20 … 60), plus the last
+  day if the plan's length isn't a multiple of 10. Only those days ask for a
+  photo; the others show when the next one is.
 - Activities and questions are **archived, never deleted**. Each entry records
   which activities and questions were in the plan that day, so editing the
   plan later doesn't change past days.

@@ -7,9 +7,11 @@ public enum NotificationCopy {
         public let body: String
     }
 
-    /// "Day 14 of 60" / "Back from your run? Five ticks and a photo, about two minutes."
-    /// On the last day: "Day 60 of 60" / "Last one. Log it, then see all 60 days."
-    public static func morning(dayNumber: Int, length: Int, activityCount: Int, leadActivity: String?) -> Message {
+    /// "Day 10 of 60" / "Back from your run? Five ticks and a photo, about two minutes."
+    /// The photo is only mentioned on photo days. On the last day:
+    /// "Day 60 of 60" / "Last one. Log it, then see all 60 days."
+    public static func morning(dayNumber: Int, length: Int, activityCount: Int, leadActivity: String?,
+                               isPhotoDay: Bool) -> Message {
         if dayNumber == length {
             return Message(title: "Day \(dayNumber) of \(length)",
                            body: "Last one. Log it, then see all \(length) days.")
@@ -17,7 +19,7 @@ public enum NotificationCopy {
         let opener = leadActivity.map { "Back from your \($0.lowercased())? " } ?? ""
         let ticks = activityCount == 1 ? "One tick" : "\(spelled(activityCount).capitalizedFirst) ticks"
         return Message(title: "Day \(dayNumber) of \(length)",
-                       body: opener + "\(ticks) and a photo, about two minutes.")
+                       body: opener + "\(ticks)\(isPhotoDay ? " and a photo" : ""), about two minutes.")
     }
 
     /// "Day 14 · 3 of 5 done" / "Mobility and Read are still open. Tap to finish today's log."
@@ -44,7 +46,8 @@ public enum NotificationCopy {
                 body: firstNudge.map { "First nudge at \($0)." } ?? "Day 1 is tomorrow.")
     }
 
-    public static func weeklyPhoto(dayNumber: Int) -> Message {
+    /// "Photo day" / "Take your Day 10 photo while the light's good."
+    public static func photoDay(dayNumber: Int) -> Message {
         Message(title: "Photo day",
                 body: "Take your Day \(dayNumber) photo while the light's good.")
     }

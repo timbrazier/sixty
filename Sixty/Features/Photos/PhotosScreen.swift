@@ -2,9 +2,9 @@ import SwiftUI
 import SwiftData
 import SixtyCore
 
-/// The Photos tab: Day 1 against the latest photo, then every day so far
-/// newest first. Tap a photo to view it full screen; Select picks photos to
-/// share, or two to compare.
+/// The Photos tab: Day 1 against the latest photo, then every photo day so
+/// far (Day 1 and every 10th day) newest first. Tap a photo to view it full
+/// screen; Select picks photos to share, or two to compare.
 struct PhotosScreen: View {
     let plan: Plan
 
@@ -27,7 +27,11 @@ struct PhotosScreen: View {
     var body: some View {
         let byDay = Dictionary(entries.map { ($0.day, $0) }, uniquingKeysWith: { first, _ in first })
         let withPhotos = entries.filter { $0.photoFilename != nil && plan.calendar.contains($0.day) }
-        let days = plan.calendar.daysSoFar(today: today).reversed()
+        // Photo days so far (Day 1 and every 10th day), plus any other day
+        // that has a photo, newest first.
+        let photoDaysSoFar = plan.calendar.daysSoFar(today: today).filter { plan.calendar.isPhotoDay($0) }
+        let days = Set(photoDaysSoFar).union(withPhotos.map(\.day)).sorted(by: >)
+        let photoDaysTaken = photoDaysSoFar.filter { byDay[$0]?.photoFilename != nil }.count
 
         NavigationStack {
             ScrollView {
@@ -35,7 +39,7 @@ struct PhotosScreen: View {
                     comparison(byDay: byDay, withPhotos: withPhotos)
 
                     VStack(alignment: .leading, spacing: Tokens.Space.xs) {
-                        SectionHeader("Timeline", trailing: "\(withPhotos.count) of \(days.count) days")
+                        SectionHeader("Timeline", trailing: "\(photoDaysTaken) of \(photoDaysSoFar.count) photo days")
                         if days.isEmpty {
                             Text("Photos appear here once the plan starts.")
                                 .font(Tokens.Font.subheadline)

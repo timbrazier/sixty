@@ -35,16 +35,14 @@ public enum ReminderPlanner {
     public struct Settings: Equatable, Sendable {
         public var morningMinutes: Int?
         public var eveningMinutes: Int?
-        /// 1 = Sunday … 7 = Saturday.
-        public var weeklyPhotoWeekday: Int?
-        public var weeklyPhotoMinutes: Int?
+        /// Reminder time on photo days (Day 1 and every 10th day); nil is off.
+        public var photoDayMinutes: Int?
 
         public init(morningMinutes: Int?, eveningMinutes: Int?,
-                    weeklyPhotoWeekday: Int? = nil, weeklyPhotoMinutes: Int? = nil) {
+                    photoDayMinutes: Int? = nil) {
             self.morningMinutes = morningMinutes
             self.eveningMinutes = eveningMinutes
-            self.weeklyPhotoWeekday = weeklyPhotoWeekday
-            self.weeklyPhotoMinutes = weeklyPhotoMinutes
+            self.photoDayMinutes = photoDayMinutes
         }
     }
 
@@ -89,7 +87,8 @@ public enum ReminderPlanner {
                 reminders.append(.init(kind: .morning, day: day, minutesAfterMidnight: minutes,
                                        message: NotificationCopy.morning(dayNumber: number, length: calendar.length,
                                                                          activityCount: activityCount,
-                                                                         leadActivity: leadActivity)))
+                                                                         leadActivity: leadActivity,
+                                                                         isPhotoDay: calendar.isPhotoDay(number: number))))
             }
 
             if let minutes = settings.eveningMinutes {
@@ -109,10 +108,9 @@ public enum ReminderPlanner {
                 }
             }
 
-            if let weekday = settings.weeklyPhotoWeekday, let minutes = settings.weeklyPhotoMinutes,
-               day.weekday == weekday {
+            if let minutes = settings.photoDayMinutes, calendar.isPhotoDay(number: number) {
                 reminders.append(.init(kind: .photo, day: day, minutesAfterMidnight: minutes,
-                                       message: NotificationCopy.weeklyPhoto(dayNumber: number)))
+                                       message: NotificationCopy.photoDay(dayNumber: number)))
             }
         }
 

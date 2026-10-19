@@ -64,8 +64,7 @@ enum NotificationScheduler {
         }
         let settings = ReminderPlanner.Settings(morningMinutes: plan.morningReminderMinutes,
                                                 eveningMinutes: plan.eveningReminderMinutes,
-                                                weeklyPhotoWeekday: plan.weeklyPhotoWeekday,
-                                                weeklyPhotoMinutes: plan.weeklyPhotoMinutes)
+                                                photoDayMinutes: plan.weeklyPhotoMinutes)
         // "Five ticks": the non-negotiables.
         let activities = plan.coreActivities
         return ReminderPlanner.plan(calendar: plan.calendar,

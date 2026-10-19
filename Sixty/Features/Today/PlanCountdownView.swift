@@ -103,11 +103,12 @@ struct PlanCountdownView: View {
         }
     }
 
-    /// "Plus 3 questions, a photo and a note. First nudge Wed 06:45."
+    /// "Plus 1 question, a note, and a progress photo on Day 1 and every 10th day.
+    /// First nudge Wed 06:45."
     private var footnote: String {
         let count = plan.activeQuestions.count
         let questions = count == 0 ? "" : "\(count) question\(count == 1 ? "" : "s"), "
-        var text = "Plus \(questions)a photo and a note."
+        var text = "Plus \(questions)a note, and a progress photo on Day 1 and every 10th day."
         if let minutes = plan.morningReminderMinutes {
             text += " First nudge \(plan.startDay.weekdayName) \(timeString(minutesAfterMidnight: minutes))."
         }

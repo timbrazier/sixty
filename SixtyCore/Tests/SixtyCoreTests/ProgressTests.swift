@@ -107,10 +107,15 @@ final class ProgressTests: XCTestCase {
                              body: "Mobility and Read are still open. Tap to finish today's log."))
         XCTAssertEqual(NotificationCopy.eveningNothingLogged(dayNumber: 14),
                        .init(title: "Day 14 is still open", body: "Log it before midnight and it counts."))
-        XCTAssertEqual(NotificationCopy.morning(dayNumber: 14, length: 60, activityCount: 5, leadActivity: "Run"),
-                       .init(title: "Day 14 of 60",
+        XCTAssertEqual(NotificationCopy.morning(dayNumber: 10, length: 60, activityCount: 5, leadActivity: "Run",
+                                                isPhotoDay: true),
+                       .init(title: "Day 10 of 60",
                              body: "Back from your run? Five ticks and a photo, about two minutes."))
-        XCTAssertEqual(NotificationCopy.morning(dayNumber: 60, length: 60, activityCount: 5, leadActivity: "Run"),
+        XCTAssertEqual(NotificationCopy.morning(dayNumber: 14, length: 60, activityCount: 5, leadActivity: "Run",
+                                                isPhotoDay: false),
+                       .init(title: "Day 14 of 60", body: "Back from your run? Five ticks, about two minutes."))
+        XCTAssertEqual(NotificationCopy.morning(dayNumber: 60, length: 60, activityCount: 5, leadActivity: "Run",
+                                                isPhotoDay: true),
                        .init(title: "Day 60 of 60", body: "Last one. Log it, then see all 60 days."))
         XCTAssertEqual(NotificationCopy.eveOfDayOne(planName: "Autumn reset", firstNudge: "06:45"),
                        .init(title: "Autumn reset starts tomorrow", body: "First nudge at 06:45."))

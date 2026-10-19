@@ -82,6 +82,19 @@ final class PlanCalendarTests: XCTestCase {
         }
     }
 
+    func testPhotoDays() {
+        let sixty = PlanCalendar(startDay: key("2026-09-30"), length: 60)
+        XCTAssertEqual(sixty.photoDays.map { sixty.dayNumber(for: $0) }, [1, 10, 20, 30, 40, 50, 60])
+        XCTAssertTrue(sixty.isPhotoDay(key("2026-10-09")))   // Day 10
+        XCTAssertFalse(sixty.isPhotoDay(key("2026-10-13")))  // Day 14
+        XCTAssertEqual(sixty.nextPhotoDay(onOrAfter: sixty.day(number: 14)), sixty.day(number: 20))
+        XCTAssertNil(sixty.nextPhotoDay(onOrAfter: sixty.day(number: 61)))
+
+        // A 45-day plan also photographs its last day.
+        let fortyFive = PlanCalendar(startDay: key("2026-09-30"), length: 45)
+        XCTAssertEqual(fortyFive.photoDays.map { fortyFive.dayNumber(for: $0) }, [1, 10, 20, 30, 40, 45])
+    }
+
     func testPhases() {
         let plan = PlanCalendar(startDay: key("2026-09-30"), length: 60)
         XCTAssertEqual(plan.phase(on: key("2026-09-27")), .notStarted(daysToGo: 3))

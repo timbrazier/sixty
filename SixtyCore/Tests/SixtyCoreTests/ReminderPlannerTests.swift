@@ -26,12 +26,13 @@ final class ReminderPlannerTests: XCTestCase {
 
     func testFourteenDaysOfMorningsAndEveningsStayUnderTheLimit() {
         let today = plan.day(number: 14)
-        let weekly = ReminderPlanner.Settings(morningMinutes: 405, eveningMinutes: 1260,
-                                              weeklyPhotoWeekday: 1, weeklyPhotoMinutes: 600)
-        let all = reminders(today: today, now: at(today, 5), settings: weekly)
+        let withPhotos = ReminderPlanner.Settings(morningMinutes: 405, eveningMinutes: 1260,
+                                                  photoDayMinutes: 600)
+        let all = reminders(today: today, now: at(today, 5), settings: withPhotos)
         XCTAssertEqual(all.filter { $0.kind == .morning }.count, 14)
         XCTAssertEqual(all.filter { $0.kind == .evening }.count, 14)
-        XCTAssertEqual(all.filter { $0.kind == .photo }.count, 2)
+        // Days 14–27: only Day 20 is a photo day.
+        XCTAssertEqual(all.filter { $0.kind == .photo }.map(\.day), [plan.day(number: 20)])
         XCTAssertLessThanOrEqual(all.count, 64)
         XCTAssertEqual(Set(all.map(\.identifier)).count, all.count)
     }
@@ -96,6 +97,15 @@ final class ReminderPlannerTests: XCTestCase {
             XCTAssertEqual(parts.day, 25)
             XCTAssertEqual(parts.hour, reminder.kind == .morning ? 6 : 21)
         }
+    }
+
+    func testMorningOnlyMentionsThePhotoOnPhotoDays() {
+        let today = plan.day(number: 18)
+        let mornings = reminders(today: today, now: at(today, 5)).filter { $0.kind == .morning }
+        XCTAssertEqual(mornings.first { $0.day == plan.day(number: 19) }?.message.body,
+                       "Back from your run? Two ticks, about two minutes.")
+        XCTAssertEqual(mornings.first { $0.day == plan.day(number: 20) }?.message.body,
+                       "Back from your run? Two ticks and a photo, about two minutes.")
     }
 
     func testLeadActivity() {

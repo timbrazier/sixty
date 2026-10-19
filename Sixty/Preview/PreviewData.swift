@@ -34,7 +34,7 @@ enum PreviewData {
         let plan = Plan(name: "Autumn reset", startDay: startDay,
                         morningReminderMinutes: 6 * 60 + 45,
                         eveningReminderMinutes: 21 * 60,
-                        weeklyPhotoWeekday: 4, weeklyPhotoMinutes: 7 * 60)
+                        weeklyPhotoMinutes: 7 * 60)
         context.insert(plan)
         plan.activities = [
             Activity(title: "Morning run", target: "5 km", sortOrder: 0),
@@ -64,7 +64,7 @@ enum PreviewData {
             entry.completedActivityIDs = coreDone + (number % 3 == 0 ? [] : bonus)
             entry.answers = number % 7 == 0 ? [weight: String(format: "%.1f", 82 - Double(number) * 0.1)] : [:]
             entry.journal = number == 13 ? "Legs heavy" : ""
-            entry.photoFilename = number == 1 || number % 7 == 0 ? "preview-day-\(number).jpg" : nil
+            entry.photoFilename = plan.calendar.isPhotoDay(number: number) ? "preview-day-\(number).jpg" : nil
             context.insert(entry)
         }
 
