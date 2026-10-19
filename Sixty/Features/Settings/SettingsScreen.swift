@@ -88,7 +88,9 @@ struct SettingsScreen: View {
             }
             .surfaceRow()
             NavigationLink { ActivitiesEditor(plan: plan) } label: {
-                row("Activities", value: "\(plan.activeActivities.count)")
+                row("Activities", value: plan.bonusActivities.isEmpty
+                    ? "\(plan.coreActivities.count)"
+                    : "\(plan.coreActivities.count) + \(plan.bonusActivities.count) bonus")
             }
             .surfaceRow()
             NavigationLink { QuestionsEditor(plan: plan) } label: {

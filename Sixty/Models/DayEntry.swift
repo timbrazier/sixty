@@ -24,6 +24,8 @@ final class DayEntry {
     /// Completion is judged against these, so editing the plan later never
     /// changes how a past day looks.
     var plannedActivityIDs: [UUID]
+    /// Which of `plannedActivityIDs` were bonus habits that day.
+    var bonusActivityIDs: [UUID] = []
     var plannedQuestionIDs: [UUID]
     var requiredQuestionIDs: [UUID]
 
@@ -43,6 +45,7 @@ final class DayEntry {
         self.photoFilename = nil
         self.photoTakenAt = nil
         self.plannedActivityIDs = []
+        self.bonusActivityIDs = []
         self.plannedQuestionIDs = []
         self.requiredQuestionIDs = []
         self.firstEditedAt = nil
@@ -57,6 +60,7 @@ final class DayEntry {
     /// Used when the entry is created, and for today when the plan is edited.
     func snapshot(_ plan: Plan) {
         plannedActivityIDs = plan.activeActivities.map(\.id)
+        bonusActivityIDs = plan.bonusActivities.map(\.id)
         plannedQuestionIDs = plan.activeQuestions.map(\.id)
         requiredQuestionIDs = plan.activeQuestions.filter { !$0.isOptional }.map(\.id)
     }
@@ -69,10 +73,12 @@ final class DayEntry {
         let answered = answers.compactMap { key, value -> UUID? in
             value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : UUID(uuidString: key)
         }
-        return DayProgress(plannedActivityIDs: plannedActivityIDs,
+        let bonus = Set(bonusActivityIDs)
+        return DayProgress(plannedActivityIDs: plannedActivityIDs.filter { !bonus.contains($0) },
                            completedActivityIDs: Set(completedActivityIDs),
                            requiredQuestionIDs: requiredQuestionIDs,
-                           answeredQuestionIDs: Set(answered))
+                           answeredQuestionIDs: Set(answered),
+                           bonusActivityIDs: plannedActivityIDs.filter(bonus.contains))
     }
 
     var isComplete: Bool { progress.isComplete }

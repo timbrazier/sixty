@@ -53,8 +53,11 @@ SixtyCore/            Foundation-only logic, unit-tested:
   timestamp. Day numbers are counted in calendar days, so month ends and the
   March/October clock changes can't shift them. `PlanCalendarTests` covers
   these.
-- A day is **complete** when every activity is ticked and every non-optional
-  question is answered. The photo and note are optional.
+- Activities come in two groups: **non-negotiables** and **bonus habits**. A
+  day is **complete** when every non-negotiable is ticked and every
+  non-optional question is answered. Bonus habits, the photo and the note are
+  tracked but optional. The ring, streak and evening check-in follow the
+  non-negotiables.
 - Activities and questions are **archived, never deleted**. Each entry records
   which activities and questions were in the plan that day, so editing the
   plan later doesn't change past days.

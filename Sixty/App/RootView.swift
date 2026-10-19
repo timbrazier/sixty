@@ -24,6 +24,7 @@ struct RootView: View {
         }
         .environment(\.today, today)
         .tint(Tokens.Colour.accent)
+        .task { DataMigrations.run(in: context, today: today) }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .active:
@@ -49,7 +50,7 @@ struct MainTabView: View {
         @Bindable var router = router
         TabView(selection: $router.tab) {
             TodayScreen(plan: plan)
-                .tabItem { Label("Today", systemImage: "circle.circle") }
+                .tabItem { Label("Today", systemImage: "smallcircle.filled.circle") }
                 .tag(AppRouter.Tab.today)
             ProgressScreen(plan: plan)
                 .tabItem { Label("Progress", systemImage: "square.grid.2x2") }

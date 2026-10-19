@@ -29,4 +29,20 @@ final class LogExportTests: XCTestCase {
         XCTAssertEqual(lines[2], "2026-10-01,2,no,,,,,,,")
         XCTAssertEqual(lines[3], "2026-10-02,3,no,1 of 2,1,,0,,,")
     }
+
+    func testBonusHabitsGetTheirOwnCells() {
+        let plan = PlanCalendar(startDay: DayKey(rawValue: "2026-09-30")!, length: 60)
+        let day = LogExport.Day(day: plan.day(number: 1), dayNumber: 1,
+                                progress: DayProgress(plannedActivityIDs: [run], completedActivityIDs: [run],
+                                                      requiredQuestionIDs: [], answeredQuestionIDs: [],
+                                                      bonusActivityIDs: [read, stretch]))
+        let csv = LogExport.csv(days: [day],
+                                activities: [.init(id: run, title: "Morning run"),
+                                             .init(id: read, title: "Read"),
+                                             .init(id: stretch, title: "Stretch")],
+                                questions: [])
+        let lines = csv.components(separatedBy: "\r\n").filter { !$0.isEmpty }
+        // Complete on the non-negotiable alone; bonus habits show as 0 when not ticked.
+        XCTAssertEqual(lines[1], "2026-09-30,1,yes,1 of 1,1,0,0,,")
+    }
 }

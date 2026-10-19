@@ -59,6 +59,12 @@ final class Plan {
         activities.filter { !$0.isArchived }.sorted { $0.sortOrder < $1.sortOrder }
     }
 
+    /// Non-negotiables still in the plan, in display order.
+    var coreActivities: [Activity] { activeActivities.filter { !$0.isBonus } }
+
+    /// Bonus habits still in the plan, in display order.
+    var bonusActivities: [Activity] { activeActivities.filter(\.isBonus) }
+
     /// Questions still in the plan, in display order.
     var activeQuestions: [Question] {
         questions.filter { !$0.isArchived }.sorted { $0.sortOrder < $1.sortOrder }

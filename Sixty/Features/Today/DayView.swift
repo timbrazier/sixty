@@ -62,16 +62,26 @@ struct DayView: View {
         return entry.plannedActivityIDs.compactMap(plan.activity(id:))
     }
 
+    /// Which activities were bonus habits on this day.
+    private var bonusIDs: Set<UUID> {
+        guard let entry else { return Set(plan.bonusActivities.map(\.id)) }
+        return Set(entry.bonusActivityIDs)
+    }
+
+    private var coreActivities: [Activity] { activities.filter { !bonusIDs.contains($0.id) } }
+    private var bonusActivities: [Activity] { activities.filter { bonusIDs.contains($0.id) } }
+
     private var questions: [Question] {
         guard let entry else { return plan.activeQuestions }
         return entry.plannedQuestionIDs.compactMap(plan.question(id:))
     }
 
     private var progress: DayProgress {
-        entry?.progress ?? DayProgress(plannedActivityIDs: activities.map(\.id),
+        entry?.progress ?? DayProgress(plannedActivityIDs: coreActivities.map(\.id),
                                        completedActivityIDs: [],
                                        requiredQuestionIDs: questions.filter { !$0.isOptional }.map(\.id),
-                                       answeredQuestionIDs: [])
+                                       answeredQuestionIDs: [],
+                                       bonusActivityIDs: bonusActivities.map(\.id))
     }
 
     private var bibLabel: String {
@@ -135,7 +145,7 @@ struct DayView: View {
         }
         .background(Tokens.Colour.bg)
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pageWidth = $0 }
-        .sensoryFeedback(.impact(weight: .light), trigger: progress.activitiesDone) { old, new in new > old }
+        .sensoryFeedback(.impact(weight: .light), trigger: progress.activitiesDone + progress.bonusDone) { old, new in new > old }
         .sensoryFeedback(.success, trigger: progress.isComplete) { _, new in new }
         .sensoryFeedback(.impact(flexibility: .rigid), trigger: blockedBounces)
         .toolbar {
@@ -227,13 +237,22 @@ struct DayView: View {
         .frame(maxWidth: .infinity)
     }
 
+    /// Non-negotiables, then bonus habits, each with its own count.
+    @ViewBuilder
     private var checklist: some View {
+        activityGroup(Activity.Group.core, coreActivities,
+                      done: progress.activitiesDone, total: progress.activitiesTotal)
+        if !bonusActivities.isEmpty {
+            activityGroup(Activity.Group.bonus, bonusActivities,
+                          done: progress.bonusDone, total: progress.bonusTotal)
+        }
+    }
+
+    private func activityGroup(_ title: String, _ items: [Activity], done: Int, total: Int) -> some View {
         VStack(alignment: .leading, spacing: Tokens.Space.xs) {
-            if !isLocked {
-                SectionHeader("Activities", trailing: "\(progress.activitiesDone) of \(progress.activitiesTotal)")
-            }
+            SectionHeader(title, trailing: isLocked ? nil : "\(done) of \(total)")
             Card {
-                ForEach(Array(activities.enumerated()), id: \.element.id) { index, activity in
+                ForEach(Array(items.enumerated()), id: \.element.id) { index, activity in
                     if index > 0 { CardDivider(leading: 58) }
                     ActivityRow(title: activity.title, target: isLocked ? nil : activity.target,
                                 isDone: progress.completedActivityIDs.contains(activity.id),
@@ -456,7 +475,7 @@ struct DayView: View {
         ghostFilename = (try? context.fetch(descriptor))?.first?.photoFilename
     }
 
-    /// The most recent earlier answer to each question, so "Add" on Sleep or
+    /// The most recent earlier answer to each question, so "Add" on a number like
     /// Weight starts from last time's number rather than zero.
     private func loadLastAnswers() {
         let raw = day.rawValue

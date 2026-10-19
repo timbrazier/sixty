@@ -38,9 +38,15 @@ enum Exporter {
                                  note: entry?.journal ?? "",
                                  photoFilename: entry?.photoFilename.map { photoName(day: day, plan: plan, filename: $0) })
         }
-        let activities = plan.activities.sorted { $0.sortOrder < $1.sortOrder }.map {
-            LogExport.Column(id: $0.id, title: $0.isArchived ? "\($0.title) (removed)" : $0.title)
-        }
+        // Non-negotiables first, then bonus habits, each in display order.
+        let activities = plan.activities
+            .sorted { ($0.isBonus ? 1 : 0, $0.sortOrder) < ($1.isBonus ? 1 : 0, $1.sortOrder) }
+            .map { activity in
+                var title = activity.title
+                if activity.isBonus { title += " (bonus)" }
+                if activity.isArchived { title += " (removed)" }
+                return LogExport.Column(id: activity.id, title: title)
+            }
         let questions = plan.questions.sorted { $0.sortOrder < $1.sortOrder }.map {
             LogExport.Column(id: $0.id, title: $0.isArchived ? "\($0.prompt) (removed)" : $0.prompt)
         }

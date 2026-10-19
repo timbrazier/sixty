@@ -3,8 +3,11 @@ import Foundation
 /// What was asked of a day and what was done, judged against that day's own
 /// snapshot of activities and questions so later plan edits don't rewrite it.
 public struct DayProgress: Equatable, Sendable {
+    /// The non-negotiables: these decide whether the day is complete.
     public var plannedActivityIDs: [UUID]
     public var completedActivityIDs: Set<UUID>
+    /// Bonus habits: ticked and exported, but they never hold a day back.
+    public var bonusActivityIDs: [UUID]
     /// Questions that must be answered for the day to count. Optional
     /// questions (e.g. weight) are left out.
     public var requiredQuestionIDs: [UUID]
@@ -13,9 +16,11 @@ public struct DayProgress: Equatable, Sendable {
     public init(plannedActivityIDs: [UUID],
                 completedActivityIDs: Set<UUID>,
                 requiredQuestionIDs: [UUID],
-                answeredQuestionIDs: Set<UUID>) {
+                answeredQuestionIDs: Set<UUID>,
+                bonusActivityIDs: [UUID] = []) {
         self.plannedActivityIDs = plannedActivityIDs
         self.completedActivityIDs = completedActivityIDs
+        self.bonusActivityIDs = bonusActivityIDs
         self.requiredQuestionIDs = requiredQuestionIDs
         self.answeredQuestionIDs = answeredQuestionIDs
     }
@@ -32,17 +37,24 @@ public struct DayProgress: Equatable, Sendable {
 
     public var questionsTotal: Int { requiredQuestionIDs.count }
 
+    public var bonusDone: Int {
+        bonusActivityIDs.filter(completedActivityIDs.contains).count
+    }
+
+    public var bonusTotal: Int { bonusActivityIDs.count }
+
     public var openActivityIDs: [UUID] {
         plannedActivityIDs.filter { !completedActivityIDs.contains($0) }
     }
 
-    /// Every planned activity ticked and every required question answered.
+    /// Every non-negotiable ticked and every required question answered.
+    /// Bonus habits don't count.
     public var isComplete: Bool {
         activitiesDone == activitiesTotal && questionsAnswered == questionsTotal
     }
 
     public var hasAnyProgress: Bool {
-        activitiesDone > 0 || questionsAnswered > 0
+        activitiesDone > 0 || questionsAnswered > 0 || bonusDone > 0
     }
 }
 

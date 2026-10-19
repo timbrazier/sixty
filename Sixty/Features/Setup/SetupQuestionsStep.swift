@@ -71,11 +71,7 @@ struct SetupQuestionsStep: View {
     }
 
     private var questionFooter: String {
-        let range = PlanDraft.questionLimit
-        if draft.questions.count < range.lowerBound {
-            return "Add at least \(range.lowerBound) questions. Swipe left on one to delete it."
-        }
-        return "Keep it to \(range.lowerBound) to \(range.upperBound). Swipe left on one to delete it. Optional questions don't count against a complete day."
+        "Optional, up to \(PlanDraft.questionLimit.upperBound). Swipe left on one to delete it. Optional questions don't count against a complete day."
     }
 }
 
@@ -103,7 +99,7 @@ struct QuestionEditor: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Question, e.g. Sleep", text: $question.prompt)
+                    TextField("Question, e.g. Weight", text: $question.prompt)
                         .focused($promptFocused)
                     Picker("Answer", selection: $question.kind) {
                         Text("Number").tag(Question.Kind.number)

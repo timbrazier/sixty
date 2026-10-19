@@ -44,7 +44,7 @@ public enum LogExport {
 
         let rows = days.map { day -> [String] in
             let progress = day.progress
-            let planned = Set(progress?.plannedActivityIDs ?? [])
+            let planned = Set((progress?.plannedActivityIDs ?? []) + (progress?.bonusActivityIDs ?? []))
             var row = [
                 day.day.rawValue,
                 String(day.dayNumber),

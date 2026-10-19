@@ -21,6 +21,27 @@ final class ProgressTests: XCTestCase {
         XCTAssertTrue(progress(done: [run, read], answered: [sleep]).isComplete)
     }
 
+    func testBonusHabitsDontHoldADayBack() {
+        let stretch = UUID()
+        let p = DayProgress(plannedActivityIDs: [run, read], completedActivityIDs: [run, read],
+                            requiredQuestionIDs: [sleep], answeredQuestionIDs: [sleep],
+                            bonusActivityIDs: [stretch])
+        XCTAssertTrue(p.isComplete)
+        XCTAssertEqual(p.bonusDone, 0)
+        XCTAssertEqual(p.bonusTotal, 1)
+        XCTAssertEqual(p.activitiesTotal, 2)
+    }
+
+    func testOnlyABonusHabitTickedCountsAsPartial() {
+        let stretch = UUID()
+        let p = DayProgress(plannedActivityIDs: [run], completedActivityIDs: [stretch],
+                            requiredQuestionIDs: [], answeredQuestionIDs: [],
+                            bonusActivityIDs: [stretch])
+        XCTAssertFalse(p.isComplete)
+        XCTAssertEqual(DayStatus.of(day: key("2026-10-12"), today: key("2026-10-13"), progress: p),
+                       .partial(done: 0, total: 1))
+    }
+
     func testTicksForActivitiesOutsideTheSnapshotDontCount() {
         // An activity added to the plan later doesn't change an old day.
         let p = progress(done: [run, read, UUID()], answered: [sleep, weight])

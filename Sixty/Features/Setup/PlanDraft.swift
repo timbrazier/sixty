@@ -10,6 +10,7 @@ final class PlanDraft {
         var id = UUID()
         var title: String
         var target: String = ""
+        var isBonus = false
     }
 
     struct QuestionDraft: Identifiable, Equatable {
@@ -46,7 +47,8 @@ final class PlanDraft {
         }
     }
 
-    static let questionLimit = 2...4
+    /// Questions are optional now; up to four keeps a day quick to log.
+    static let questionLimit = 0...4
 
     var name = ""
     var startDay: DayKey
@@ -65,14 +67,12 @@ final class PlanDraft {
         startDay = today.adding(days: 1)
         activities = [
             .init(title: "Morning run", target: "5 km"),
-            .init(title: "Mobility", target: "10 min"),
             .init(title: "Push-ups", target: "3 × 20"),
             .init(title: "Water", target: "2 L"),
-            .init(title: "Read", target: "20 pages"),
+            .init(title: "Mobility", target: "10 min", isBonus: true),
+            .init(title: "Read", target: "20 pages", isBonus: true),
         ]
         questions = [
-            .init(prompt: "Sleep", kind: .number, unit: "hours", step: 0.5),
-            .init(prompt: "Energy", kind: .scale),
             .init(prompt: "Weight", kind: .number, unit: "kg", step: 0.1, isOptional: true),
         ]
     }
@@ -84,7 +84,38 @@ final class PlanDraft {
     var trimmedName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     var canContinueFromBasics: Bool { !trimmedName.isEmpty && lengthDays >= 1 }
-    var canContinueFromActivities: Bool { !activities.isEmpty }
+    /// A day needs at least one non-negotiable to be completable.
+    var canContinueFromActivities: Bool { !coreActivities.isEmpty }
+
+    var coreActivities: [ActivityDraft] { activities.filter { !$0.isBonus } }
+    var bonusActivities: [ActivityDraft] { activities.filter(\.isBonus) }
+
+    /// Reorders within one group (the list shows each group separately).
+    func moveActivities(bonus: Bool, from offsets: IndexSet, to destination: Int) {
+        var group = bonus ? bonusActivities : coreActivities
+        group.move(fromOffsets: offsets, toOffset: destination)
+        activities = bonus ? coreActivities + group : group + bonusActivities
+    }
+
+    func removeActivities(bonus: Bool, at offsets: IndexSet) {
+        var group = bonus ? bonusActivities : coreActivities
+        group.remove(atOffsets: offsets)
+        activities = bonus ? coreActivities + group : group + bonusActivities
+    }
+
+    /// Adds a new activity, or updates one in place (moving it to the end
+    /// of its new group if it switched between non-negotiable and bonus).
+    func saveActivity(_ draft: ActivityDraft) {
+        if let index = activities.firstIndex(where: { $0.id == draft.id }) {
+            if activities[index].isBonus == draft.isBonus {
+                activities[index] = draft
+                return
+            }
+            activities.remove(at: index)
+        }
+        activities.append(draft)
+        activities = coreActivities + bonusActivities
+    }
     var canStart: Bool { PlanDraft.questionLimit.contains(questions.count) }
     var canAddQuestion: Bool { questions.count < PlanDraft.questionLimit.upperBound }
 
@@ -102,7 +133,8 @@ final class PlanDraft {
             return Activity(id: draft.id,
                             title: draft.title.trimmingCharacters(in: .whitespacesAndNewlines),
                             target: target.isEmpty ? nil : target,
-                            sortOrder: index)
+                            sortOrder: index,
+                            isBonus: draft.isBonus)
         }
         plan.questions = questions.enumerated().map { index, draft in
             let unit = draft.unit.trimmingCharacters(in: .whitespacesAndNewlines)

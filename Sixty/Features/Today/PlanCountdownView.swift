@@ -49,36 +49,15 @@ struct PlanCountdownView: View {
                     }
                     .accessibilityElement(children: .combine)
 
-                    VStack(alignment: .leading, spacing: Tokens.Space.xs) {
-                        SectionHeader("Each day")
-                        Card {
-                            ForEach(Array(plan.activeActivities.enumerated()), id: \.element.id) { index, activity in
-                                if index > 0 { CardDivider() }
-                                HStack(spacing: Tokens.Space.s) {
-                                    Circle().fill(Tokens.Colour.ink3).frame(width: 6, height: 6)
-                                    AdaptiveStack {
-                                        Text(activity.title)
-                                            .font(Tokens.Font.body)
-                                            .foregroundStyle(Tokens.Colour.ink)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                        if let target = activity.target {
-                                            Text(target)
-                                                .font(Tokens.Font.subheadline)
-                                                .foregroundStyle(Tokens.Colour.ink2)
-                                        }
-                                    }
-                                }
-                                .padding(.horizontal, Tokens.Space.m)
-                                .padding(.vertical, Tokens.Space.xs)
-                                .frame(minHeight: Tokens.Size.row - 4)
-                                .accessibilityElement(children: .combine)
-                            }
-                        }
-                        Text(footnote)
-                            .font(Tokens.Font.footnoteRegular)
-                            .foregroundStyle(Tokens.Colour.ink2)
-                            .padding(.horizontal, Tokens.Space.m)
+                    activityList(Activity.Group.core, plan.coreActivities)
+                    if !plan.bonusActivities.isEmpty {
+                        activityList(Activity.Group.bonus, plan.bonusActivities)
                     }
+                    Text(footnote)
+                        .font(Tokens.Font.footnoteRegular)
+                        .foregroundStyle(Tokens.Colour.ink2)
+                        .padding(.horizontal, Tokens.Space.m)
+                        .padding(.top, -Tokens.Space.s)
 
                     Button("Start today instead", action: startToday)
                         .font(Tokens.Font.headline)
@@ -94,10 +73,41 @@ struct PlanCountdownView: View {
         .background(Tokens.Colour.bg)
     }
 
+    /// Each day's non-negotiables or bonus habits, as a bulleted card.
+    private func activityList(_ title: String, _ activities: [Activity]) -> some View {
+        VStack(alignment: .leading, spacing: Tokens.Space.xs) {
+            SectionHeader(title)
+            Card {
+                ForEach(Array(activities.enumerated()), id: \.element.id) { index, activity in
+                    if index > 0 { CardDivider() }
+                    HStack(spacing: Tokens.Space.s) {
+                        Circle().fill(Tokens.Colour.ink3).frame(width: 6, height: 6)
+                        AdaptiveStack {
+                            Text(activity.title)
+                                .font(Tokens.Font.body)
+                                .foregroundStyle(Tokens.Colour.ink)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            if let target = activity.target {
+                                Text(target)
+                                    .font(Tokens.Font.subheadline)
+                                    .foregroundStyle(Tokens.Colour.ink2)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, Tokens.Space.m)
+                    .padding(.vertical, Tokens.Space.xs)
+                    .frame(minHeight: Tokens.Size.row - 4)
+                    .accessibilityElement(children: .combine)
+                }
+            }
+        }
+    }
+
     /// "Plus 3 questions, a photo and a note. First nudge Wed 06:45."
     private var footnote: String {
         let count = plan.activeQuestions.count
-        var text = "Plus \(count) question\(count == 1 ? "" : "s"), a photo and a note."
+        let questions = count == 0 ? "" : "\(count) question\(count == 1 ? "" : "s"), "
+        var text = "Plus \(questions)a photo and a note."
         if let minutes = plan.morningReminderMinutes {
             text += " First nudge \(plan.startDay.weekdayName) \(timeString(minutesAfterMidnight: minutes))."
         }

@@ -2,8 +2,9 @@ import SwiftUI
 import SwiftData
 import SixtyCore
 
-/// Settings → Activities. Removing an activity archives it, so past days
-/// keep it; today and future days pick up the new list.
+/// Settings → Activities, in two groups: non-negotiables and bonus habits.
+/// Removing an activity archives it, so past days keep it; today and future
+/// days pick up the new list.
 struct ActivitiesEditor: View {
     let plan: Plan
     @Environment(\.modelContext) private var context
@@ -14,32 +15,25 @@ struct ActivitiesEditor: View {
     var body: some View {
         List {
             Section {
-                ForEach(plan.activeActivities) { activity in
-                    Button {
-                        editing = .init(id: activity.id, title: activity.title, target: activity.target ?? "")
-                    } label: {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(activity.title).foregroundStyle(Tokens.Colour.ink)
-                            if let target = activity.target {
-                                Text(target)
-                                    .font(Tokens.Font.subheadline)
-                                    .foregroundStyle(Tokens.Colour.ink2)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, minHeight: Tokens.Size.row, alignment: .leading)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
+                rows(plan.coreActivities)
+                    .deleteDisabled(plan.coreActivities.count <= 1)
+                AddRow(title: "Add non-negotiable") { editing = PlanDraft.ActivityDraft(title: "") }
                     .surfaceRow()
-                }
-                .onDelete(perform: archive)
-                .onMove(perform: move)
-                .deleteDisabled(plan.activeActivities.count <= 1)
-
-                AddRow(title: "Add activity") { editing = PlanDraft.ActivityDraft(title: "") }
-                    .surfaceRow()
+            } header: {
+                Text(Activity.Group.core).sectionLabelStyle()
             } footer: {
-                Text("Removing an activity keeps it on the days it was part of. Today and future days use this list.")
+                Text("Every one of these makes a day count.")
+                    .font(Tokens.Font.footnoteRegular)
+            }
+
+            Section {
+                rows(plan.bonusActivities)
+                AddRow(title: "Add bonus habit") { editing = PlanDraft.ActivityDraft(title: "", isBonus: true) }
+                    .surfaceRow()
+            } header: {
+                Text(Activity.Group.bonus).sectionLabelStyle()
+            } footer: {
+                Text("Tracked, but a day still counts without them. Removing an activity keeps it on the days it was part of; today and future days use these lists.")
                     .font(Tokens.Font.footnoteRegular)
             }
         }
@@ -47,33 +41,65 @@ struct ActivitiesEditor: View {
         .environment(\.editMode, .constant(.active))
         .navigationTitle("Activities")
         .sheet(item: $editing) { draft in
-            ActivityEditor(activity: draft, onSave: save)
+            let isLastCore = !draft.isBonus && plan.coreActivities.count == 1
+                && plan.coreActivities.first?.id == draft.id
+            ActivityEditor(activity: draft, canChangeGroup: !isLastCore, onSave: save)
         }
+    }
+
+    private func rows(_ activities: [Activity]) -> some View {
+        ForEach(activities) { activity in
+            Button {
+                editing = .init(id: activity.id, title: activity.title, target: activity.target ?? "",
+                                isBonus: activity.isBonus)
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(activity.title).foregroundStyle(Tokens.Colour.ink)
+                    if let target = activity.target {
+                        Text(target)
+                            .font(Tokens.Font.subheadline)
+                            .foregroundStyle(Tokens.Colour.ink2)
+                    }
+                }
+                .frame(maxWidth: .infinity, minHeight: Tokens.Size.row, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .surfaceRow()
+        }
+        .onDelete { offsets in archive(activities, offsets) }
+        .onMove { offsets, destination in move(activities, offsets, destination) }
     }
 
     private func save(_ draft: PlanDraft.ActivityDraft) {
         let title = draft.title.trimmingCharacters(in: .whitespacesAndNewlines)
         let target = draft.target.trimmingCharacters(in: .whitespacesAndNewlines)
+        let order = (plan.activities.map(\.sortOrder).max() ?? -1) + 1
         if let existing = plan.activity(id: draft.id) {
             existing.title = title
             existing.target = target.isEmpty ? nil : target
+            if existing.isBonus != draft.isBonus {
+                existing.isBonus = draft.isBonus
+                existing.sortOrder = order // to the end of its new group
+            }
         } else {
-            let order = (plan.activities.map(\.sortOrder).max() ?? -1) + 1
-            plan.activities.append(Activity(id: draft.id, title: title, target: target.isEmpty ? nil : target, sortOrder: order))
+            plan.activities.append(Activity(id: draft.id, title: title, target: target.isEmpty ? nil : target,
+                                            sortOrder: order, isBonus: draft.isBonus))
         }
         changed()
     }
 
-    private func archive(_ offsets: IndexSet) {
-        let active = plan.activeActivities
-        for index in offsets { active[index].isArchived = true }
+    private func archive(_ group: [Activity], _ offsets: IndexSet) {
+        for index in offsets { group[index].isArchived = true }
         changed()
     }
 
-    private func move(_ offsets: IndexSet, _ destination: Int) {
-        var active = plan.activeActivities
-        active.move(fromOffsets: offsets, toOffset: destination)
-        for (index, activity) in active.enumerated() { activity.sortOrder = index }
+    /// Reorders within one group; the other group's order is untouched.
+    private func move(_ group: [Activity], _ offsets: IndexSet, _ destination: Int) {
+        var reordered = group
+        reordered.move(fromOffsets: offsets, toOffset: destination)
+        let slots = group.map(\.sortOrder).sorted()
+        for (activity, slot) in zip(reordered, slots) { activity.sortOrder = slot }
         changed()
     }
 
@@ -83,7 +109,7 @@ struct ActivitiesEditor: View {
     }
 }
 
-/// Settings → Daily questions: 2 to 4, archived rather than deleted.
+/// Settings → Daily questions: up to 4, archived rather than deleted.
 struct QuestionsEditor: View {
     let plan: Plan
     @Environment(\.modelContext) private var context
@@ -122,7 +148,7 @@ struct QuestionsEditor: View {
                         .surfaceRow()
                 }
             } footer: {
-                Text("Keep it to 2 to 4. Removed questions keep their answers on past days.")
+                Text("Up to 4. Removed questions keep their answers on past days.")
                     .font(Tokens.Font.footnoteRegular)
             }
         }
